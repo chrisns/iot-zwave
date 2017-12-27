@@ -1,6 +1,5 @@
 /* eslint-disable no-undef, camelcase, no-unused-vars, no-return-assign */
 
-const ZWave = require('openzwave-shared')
 const AWS = require('aws-sdk')
 const awsIot = require('aws-iot-device-sdk')
 const Queue = require('promise-queue')
@@ -136,6 +135,8 @@ if (!global.it) {
     protocol: 'wss',
     debug: DEBUG
   })
+
+  const ZWave = require('openzwave-shared')
 
   const zwave = new ZWave({
     Logging: DEBUG,

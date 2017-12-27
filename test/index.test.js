@@ -8,6 +8,7 @@ chai.use(require('sinon-chai'))
 
 describe('iot_zwave', function () {
   let mycode
+  this.timeout(10000)
 
   beforeEach(() => {
     mycode = rewire('../index')

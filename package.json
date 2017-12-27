@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "nyc mocha",
-    "lint": "eslint ."
+    "lint": "eslint index.js"
   },
   "author": "Chris Nesbitt-Smith",
   "license": "MIT",

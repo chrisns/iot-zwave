@@ -15,3 +15,5 @@ pipeline:
       - docker deploy --compose-file docker-compose.yml iot-zwave
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    when:
+      branch: master

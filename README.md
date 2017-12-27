@@ -1,5 +1,7 @@
 # Z-Wave AWS-IOT Bridge/Gateway
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/chrisns/iot-zwave.svg)](https://greenkeeper.io/)
+
 ## To carry out system activities
 Publish to `$aws/things/zwave/shadow/update` (or update the thing shadow)
 ```json

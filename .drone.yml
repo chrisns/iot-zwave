@@ -1,0 +1,17 @@
+pipeline:
+
+  docker:
+    image: plugins/docker
+    repo: chrisns/iot-zwave
+    tags:
+      - latest
+      - ${DRONE_BUILD_NUMBER}
+    secrets: [ docker_username, docker_password ]
+
+  deploy:
+    image: docker
+    secrets: [ AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY ]
+    commands:
+      - docker deploy --compose-file docker-compose.yml iot-zwave
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

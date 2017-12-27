@@ -1,0 +1,29 @@
+version: "3"
+services:
+  zwave:
+    deploy:
+      placement:
+        constraints:
+          - node.labels.zwave == true
+      replicas: 0
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 128M
+        reservations:
+          cpus: '0.10'
+          memory: 96M
+      restart_policy:
+        condition: any
+        delay: 5s
+      labels:
+        - zwave-device-binding=true
+    image: chrisns/iot-zwave:${DRONE_BUILD_NUMBER}
+    environment:
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_IOT_ENDPOINT_HOST=${AWS_IOT_ENDPOINT_HOST}
+      - AWS_REGION=${AWS_REGION}
+      - ZWAVE_NETWORK_KEY=${ZWAVE_NETWORK_KEY}
+      - DEVICE=/dev/ttyUSB1
+      - DEBUG=FALSE

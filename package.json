@@ -1,0 +1,38 @@
+{
+  "name": "iot-zwave",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "nyc mocha",
+    "lint": "eslint ."
+  },
+  "author": "Chris Nesbitt-Smith",
+  "license": "MIT",
+  "repository": "https://github.com/chrisns/iot-zwave",
+  "dependencies": {
+    "aws-iot-device-sdk": "^2.2.0",
+    "aws-sdk": "^2.168.0",
+    "lodash.mapvalues": "^4.6.0",
+    "lodash.pickby": "^4.6.0",
+    "lodash.set": "^4.3.2",
+    "openzwave-shared": "^1.4.0",
+    "promise-queue": "^2.2.3"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.14.0",
+    "eslint-config-standard": "^11.0.0-beta.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "istanbul": "^1.1.0-alpha.1",
+    "mocha": "^4.0.1",
+    "nyc": "^11.3.0",
+    "rewire": "^3.0.2",
+    "sinon": "^4.1.3",
+    "sinon-chai": "^2.14.0"
+  }
+}

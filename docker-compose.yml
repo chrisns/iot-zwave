@@ -4,7 +4,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.zwave == true
+          - node.labels.zwave2 == true
       replicas: 0
       resources:
         limits:

@@ -5,7 +5,7 @@ services:
       placement:
         constraints:
           - node.labels.zwave2 == true
-      replicas: 0
+      replicas: 1
       resources:
         limits:
           cpus: '1.0'

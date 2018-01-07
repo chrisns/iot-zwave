@@ -14,102 +14,7 @@ const queue = new Queue(1, Infinity)
 
 let things = {}
 
-module.exports.zwave_driver_failed = () => {
-  console.log('driver failed')
-  zwave.disconnect()
-  process.exit()
-}
-
-module.exports.value_update = (nodeid, comclass, value) =>
-  module.exports.update_thing(
-    value.node_id,
-    _.set({}, `${value.genre}.${value.label}`, value.value))
-
-module.exports.update_thing = (thing_id, update) =>
-  queue.add(() =>
-    iotdata.updateThingShadow({
-      thingName: `zwave_${thing_id}`,
-      payload: JSON.stringify({state: {reported: update}})
-    }).promise()
-  )
-
-module.exports.setValue = (thing_id, genre, label, value) => zwave.setValue(...things[thing_id][genre][label].split('-').concat([value]))
-
-module.exports.zwave_on_value_added = (nodeid, comclass, value) => things = _.set(things, `zwave_${nodeid}.${value.genre}.${value.label}`, value.value_id)
-
-module.exports.thingShadows_on_delta_2 = (thingName, stateObject) => {
-  if (thingName === 'zwave') return
-  Object.entries(stateObject.state).forEach(([genre, values]) =>
-    Object.entries(values).forEach(([label, value]) =>
-      module.exports.setValue(thingName, genre, label, value)
-    )
-  )
-}
-
-module.exports.SIGINT = () => {
-  console.log('disconnecting...')
-  zwave.disconnect(DEVICE)
-  process.exit()
-}
-
-module.exports.zwave_on_node_removed = nodeid => iot.deleteThing({thingName: `zwave_${nodeid}`})
-
-module.exports.zwave_on_node_available = (nodeid, nodeinfo) => {
-  let params = {
-    thingName: `zwave_${nodeid}`,
-    thingTypeName: 'zwave',
-    attributePayload: {
-      attributes: _.mapValues(_.pickBy(nodeinfo, info => info.length >= 1 && info.length <= 800), v => v.replace(new RegExp(' ', 'g'), '_'))
-    }
-  }
-  return iot.createThing(params).promise()
-    .catch(() => iot.updateThing(params).promise())
-    .then(() => thingShadows.register(`zwave_${nodeid}`))
-}
-
-module.exports.zwave_on_driver_ready = homeid => {
-  let params = {
-    thingName: 'zwave'
-  }
-  iot.createThing(params).promise()
-    .catch(() => iot.updateThing(params).promise())
-    .then(() => thingShadows.register('zwave'))
-}
-
-module.exports.thingShadow_on_delta_1 = (thingName, stateObject) => {
-  if (thingName !== 'zwave') return
-
-  const update = key => queue.add(() =>
-    iotdata.updateThingShadow({
-      thingName: thingName,
-      payload: JSON.stringify({state: {reported: {[key]: stateObject.state[key]}}})
-    }).promise())
-
-  if (stateObject.state.secureAddNode) {
-    zwave.addNode(true)
-    update('secureAddNode')
-  }
-  if (stateObject.state.healNetwork) {
-    zwave.healNetwork()
-    update('healNetwork')
-  }
-  if (stateObject.state.addNode) {
-    zwave.addNode()
-    update('addNode')
-  }
-  if (stateObject.state.cancelControllerCommand) {
-    zwave.cancelControllerCommand()
-    update('cancelControllerCommand')
-  }
-  if (stateObject.state.removeNode) {
-    zwave.removeNode()
-    update('removeNode')
-  }
-  if (stateObject.state.softReset) {
-    zwave.softReset()
-    update('softReset')
-  }
-}
+let home_id
 
 if (!global.it) {
   const iot = new AWS.Iot({
@@ -160,3 +65,102 @@ if (!global.it) {
   zwave.on('value added', module.exports.value_update)
   zwave.on('value changed', module.exports.value_update)
 }
+
+module.exports.zwave_driver_failed = () => {
+  console.log('driver failed')
+  zwave.disconnect()
+  process.exit()
+}
+
+module.exports.value_update = (nodeid, comclass, value) =>
+  module.exports.update_thing(
+    value.node_id,
+    _.set({}, `${value.genre}.${value.label}`, value.value))
+
+module.exports.update_thing = (thing_id, update) =>
+  queue.add(() =>
+    iotdata.updateThingShadow({
+      thingName: `zwave_${home_id}_${thing_id}`,
+      payload: JSON.stringify({state: {reported: update}})
+    }).promise()
+  )
+
+module.exports.setValue = (thing_id, genre, label, value) => zwave.setValue(...things[thing_id][genre][label].split('-').concat([value]))
+
+module.exports.zwave_on_value_added = (nodeid, comclass, value) => things = _.set(things, `zwave_${nodeid}.${value.genre}.${value.label}`, value.value_id)
+
+module.exports.thingShadows_on_delta_2 = (thingName, stateObject) => {
+  if (thingName === `zwave_${home_id}`) return
+  Object.entries(stateObject.state).forEach(([genre, values]) =>
+    Object.entries(values).forEach(([label, value]) =>
+      module.exports.setValue(thingName, genre, label, value)
+    )
+  )
+}
+
+module.exports.SIGINT = () => {
+  console.log('disconnecting...')
+  zwave.disconnect(DEVICE)
+  process.exit()
+}
+
+module.exports.zwave_on_node_removed = nodeid => iot.deleteThing({thingName: `zwave_${nodeid}`})
+
+module.exports.zwave_on_node_available = (nodeid, nodeinfo) => {
+  let params = {
+    thingName: `zwave_${home_id}_${nodeid}`,
+    thingTypeName: 'zwave',
+    attributePayload: {
+      attributes: _.mapValues(_.pickBy(nodeinfo, info => info.length >= 1 && info.length <= 800), v => v.replace(new RegExp(' ', 'g'), '_'))
+    }
+  }
+  return iot.createThing(params).promise()
+    .catch(() => iot.updateThing(params).promise())
+    .then(() => thingShadows.register(params.thingName))
+}
+
+module.exports.zwave_on_driver_ready = homeid => {
+  home_id = homeid.toString(16)
+  let params = {
+    thingName: `zwave_${home_id}`
+  }
+  iot.createThing(params).promise()
+    .catch(() => iot.updateThing(params).promise())
+    .then(() => thingShadows.register(params.thingName))
+}
+
+module.exports.thingShadow_on_delta_1 = (thingName, stateObject) => {
+  if (thingName !== `zwave_${home_id}`) return
+
+  const update = key => queue.add(() =>
+    iotdata.updateThingShadow({
+      thingName: thingName,
+      payload: JSON.stringify({state: {reported: {[key]: stateObject.state[key]}}})
+    }).promise())
+
+  if (stateObject.state.secureAddNode) {
+    zwave.addNode(true)
+    update('secureAddNode')
+  }
+  if (stateObject.state.healNetwork) {
+    zwave.healNetwork()
+    update('healNetwork')
+  }
+  if (stateObject.state.addNode) {
+    zwave.addNode()
+    update('addNode')
+  }
+  if (stateObject.state.cancelControllerCommand) {
+    zwave.cancelControllerCommand()
+    update('cancelControllerCommand')
+  }
+  if (stateObject.state.removeNode) {
+    zwave.removeNode()
+    update('removeNode')
+  }
+  if (stateObject.state.softReset) {
+    zwave.softReset()
+    update('softReset')
+  }
+}
+

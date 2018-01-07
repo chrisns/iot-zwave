@@ -163,4 +163,3 @@ module.exports.thingShadow_on_delta_1 = (thingName, stateObject) => {
     update('softReset')
   }
 }
-

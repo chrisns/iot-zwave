@@ -24,4 +24,8 @@ ENV ZWAVE_NETWORK_KEY=""
 ENV DEVICE=/dev/ttyUSB1
 ENV DEBUG=false
 
-CMD npm start
+CMD while [ ! -f ${DEVICE} ]; do \
+  sleep 1; \
+  echo "waiting for ${DEVICE}"; \
+  done; \
+  npm start npm start

@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:9-alpine
 
 COPY . .
 
@@ -24,7 +24,7 @@ ENV ZWAVE_NETWORK_KEY=""
 ENV DEVICE=/dev/ttyUSB1
 ENV DEBUG=false
 
-CMD while [ ! -f ${DEVICE} ]; do \
+CMD while [ ! -c ${DEVICE} ]; do \
   sleep 1; \
   echo "waiting for ${DEVICE}"; \
   done; \

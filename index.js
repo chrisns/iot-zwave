@@ -48,22 +48,6 @@ if (!global.it) {
     ConsoleOutput: DEBUG,
     NetworkKey: ZWAVE_NETWORK_KEY
   })
-
-  zwave.connect(DEVICE)
-  zwave.on('value added', module.exports.zwave_on_value_added)
-  zwave.on('driver ready', homeid => console.log('scanning homeid=0x%s...', homeid.toString(16)))
-  zwave.on('scan complete', () => console.log('====> scan complete, hit ^C to finish.'))
-
-  thingShadows.on('delta', module.exports.thingShadow_on_delta_1)
-  zwave.on('driver ready', module.exports.zwave_on_driver_ready)
-  zwave.on('node available', module.exports.zwave_on_node_available)
-  zwave.on('node removed', module.exports.zwave_on_node_removed)
-  process.on('SIGINT', module.exports.SIGINT)
-  thingShadows.on('delta', module.exports.thingShadows_on_delta_2)
-  zwave.on('driver failed', module.exports.zwave_driver_failed)
-
-  zwave.on('value added', module.exports.value_update)
-  zwave.on('value changed', module.exports.value_update)
 }
 
 module.exports.zwave_driver_failed = () => {
@@ -162,4 +146,22 @@ module.exports.thingShadow_on_delta_1 = (thingName, stateObject) => {
     zwave.softReset()
     update('softReset')
   }
+}
+
+if (!global.it) {
+  zwave.connect(DEVICE)
+  zwave.on('value added', module.exports.zwave_on_value_added)
+  zwave.on('driver ready', homeid => console.log('scanning homeid=0x%s...', homeid.toString(16)))
+  zwave.on('scan complete', () => console.log('====> scan complete, hit ^C to finish.'))
+
+  thingShadows.on('delta', module.exports.thingShadow_on_delta_1)
+  zwave.on('driver ready', module.exports.zwave_on_driver_ready)
+  zwave.on('node available', module.exports.zwave_on_node_available)
+  zwave.on('node removed', module.exports.zwave_on_node_removed)
+  process.on('SIGINT', module.exports.SIGINT)
+  thingShadows.on('delta', module.exports.thingShadows_on_delta_2)
+  zwave.on('driver failed', module.exports.zwave_driver_failed)
+
+  zwave.on('value added', module.exports.value_update)
+  zwave.on('value changed', module.exports.value_update)
 }

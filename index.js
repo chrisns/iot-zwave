@@ -16,39 +16,37 @@ let things = {}
 
 let home_id
 
-if (!global.it) {
-  const iot = new AWS.Iot({
-    accessKeyId: AWS_ACCESS_KEY,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    region: AWS_REGION,
-    debug: DEBUG
+const iot = new AWS.Iot({
+  accessKeyId: AWS_ACCESS_KEY,
+  secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  region: AWS_REGION,
+  debug: DEBUG
 
-  })
+})
 
-  const iotdata = new AWS.IotData({
-    endpoint: AWS_IOT_ENDPOINT_HOST,
-    accessKeyId: AWS_ACCESS_KEY,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    region: AWS_REGION,
-    debug: DEBUG
-  })
+const iotdata = new AWS.IotData({
+  endpoint: AWS_IOT_ENDPOINT_HOST,
+  accessKeyId: AWS_ACCESS_KEY,
+  secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  region: AWS_REGION,
+  debug: DEBUG
+})
 
-  const thingShadows = awsIot.thingShadow({
-    accessKeyId: AWS_ACCESS_KEY,
-    secretKey: AWS_SECRET_ACCESS_KEY,
-    host: AWS_IOT_ENDPOINT_HOST,
-    protocol: 'wss',
-    debug: DEBUG
-  })
+const thingShadows = awsIot.thingShadow({
+  accessKeyId: AWS_ACCESS_KEY,
+  secretKey: AWS_SECRET_ACCESS_KEY,
+  host: AWS_IOT_ENDPOINT_HOST,
+  protocol: 'wss',
+  debug: DEBUG
+})
 
-  const ZWave = require('openzwave-shared')
+const ZWave = require('openzwave-shared')
 
-  const zwave = new ZWave({
-    Logging: DEBUG,
-    ConsoleOutput: DEBUG,
-    NetworkKey: ZWAVE_NETWORK_KEY
-  })
-}
+const zwave = new ZWave({
+  Logging: DEBUG,
+  ConsoleOutput: DEBUG,
+  NetworkKey: ZWAVE_NETWORK_KEY
+})
 
 module.exports.zwave_driver_failed = () => {
   console.log('driver failed')

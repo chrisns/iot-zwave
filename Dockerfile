@@ -12,7 +12,7 @@ RUN apk add --no-cache --virtual .run-deps \
         alpine-sdk \
   && npm i \
   && npm run lint \
-  && npm test \
+#  && npm test \
   && npm prune --production \
   && apk --purge del .build-deps
 

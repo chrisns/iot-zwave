@@ -71,7 +71,7 @@ It should look something like: `0x97,0x81,0x18,0x90,0xd3,0x57,0xac,0x93,0xa2,0x2
 ### General usage
 This will make a thingshadow for each of your zwave devices.
 
-The name is `zwave_n` where `n` is the node id.
+The name is `zwave_x_n` where `x` is the homeid and `n` is the node id.
 
 So for example I have a [Aeotec by Aeon Labs ZW120 Door / Window Sensor](https://www.amazon.co.uk/gp/product/B01GK5D1PE/ref=as_li_tl?ie=UTF8&camp=1634&creative=6738&creativeASIN=B01GK5D1PE&linkCode=as2&tag=chrisns-21&linkId=d1e5c073ed1c29cffa1fe8c3e25c5b09) that reports:
 
@@ -150,10 +150,11 @@ These are features I'd like to provide, but feel free to chip in
 - [ ] support over 50 zwave things (will need to have multiple connections to aws iot)
 - [ ] Arm (for Raspberry PI support)
 - [ ] Ubuntu Snap to install on ubuntu core
-- [ ] Support multiple z-wave networks - handy if you have multiple networks for:
+- [x] Support multiple z-wave networks - handy if you have multiple networks for:
     - Desire to support different frequency ranges maybe EU, US, JP to support different devices
     - Multiple physically distant locations
     - Desire for seperation of concerns for security - e.g. a network for lights and another for security devices
+    - All AWS IoT things will be zwave_$homeid_$nodeid
 
 ## Contributions
 Pull Requests welcome

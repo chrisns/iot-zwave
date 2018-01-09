@@ -148,7 +148,7 @@ These are features I'd like to provide, but feel free to chip in
 - [x] Docker
 - [ ] toggler of binary switches (useful for alerts)
 - [ ] support over 50 zwave things (will need to have multiple connections to aws iot)
-- [ ] Arm (for Raspberry PI support)
+- [ ] Arm docker image (for Raspberry PI support)
 - [ ] Ubuntu Snap to install on ubuntu core
 - [x] Support multiple z-wave networks - handy if you have multiple networks for:
     - Desire to support different frequency ranges maybe EU, US, JP to support different devices

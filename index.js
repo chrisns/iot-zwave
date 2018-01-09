@@ -59,14 +59,15 @@ module.exports.value_update = (nodeid, comclass, value) =>
     value.node_id,
     _.set({}, `${value.genre}.${value.label}`, value.value))
 
-module.exports.update_thing = (thing_id, update) =>
-  queue.add(() =>
+module.exports.update_thing = (thing_id, update) => {
+  console.log("update_thing", thing_id, update)
+  return queue.add(() =>
     iotdata.updateThingShadow({
       thingName: `zwave_${home_id}_${thing_id}`,
       payload: JSON.stringify({state: {reported: update}})
     }).promise()
   )
-
+}
 module.exports.setValue = (thing_id, genre, label, value) => zwave.setValue(...things[thing_id][genre][label].split('-').concat([value]))
 
 module.exports.zwave_on_value_added = (nodeid, comclass, value) => things = _.set(things, `zwave_${nodeid}.${value.genre}.${value.label}`, value.value_id)
@@ -96,6 +97,7 @@ module.exports.zwave_on_node_available = (nodeid, nodeinfo) => {
       attributes: _.mapValues(_.pickBy(nodeinfo, info => info.length >= 1 && info.length <= 800), v => v.replace(new RegExp(' ', 'g'), '_'))
     }
   }
+  console.log("node available", params)
   return iot.createThing(params).promise()
     .catch(() => iot.updateThing(params).promise())
     .then(() => thingShadows.register(params.thingName))
@@ -106,7 +108,7 @@ module.exports.zwave_on_driver_ready = homeid => {
   let params = {
     thingName: `zwave_${home_id}`
   }
-  iot.createThing(params).promise()
+  return iot.createThing(params).promise()
     .catch(() => iot.updateThing(params).promise())
     .then(() => thingShadows.register(params.thingName))
 }

@@ -26,4 +26,4 @@ services:
       - AWS_REGION=${AWS_REGION}
       - ZWAVE_NETWORK_KEY=${ZWAVE_NETWORK_KEY}
       - DEVICE=/dev/ttyUSB1
-      - DEBUG=FALSE
+      - DEBUG=TRUE

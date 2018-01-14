@@ -75,22 +75,21 @@ exports.update_thing = async (thing_id, update) => {
     }
     )
   )
-  return queue.add(async () => {
-    try {
-      await iotdata.updateThingShadow({
-        thingName: `zwave_${home_id}_${thing_id}`,
-        payload: JSON.stringify(payload)
-      }).promise()
-    } catch (error) { // @TODO make specfic
-      await iot.createThing({
-        thingName: params.thingName
-      }).promise()
-      await iotdata.updateThingShadow({
-        thingName: `zwave_${home_id}_${thing_id}`,
-        payload: JSON.stringify(payload)
-      }).promise()
-    }
-  }
+  return queue.add(() =>
+    iotdata.updateThingShadow({
+      thingName: `zwave_${home_id}_${thing_id}`,
+      payload: JSON.stringify(payload)
+    }).promise()
+      .catch(async () => { // @TODO make more specfic to when there isn't a thing
+        await iot.createThing({
+          thingName: params.thingName
+        }).promise()
+        await iotdata.updateThingShadow({
+          thingName: `zwave_${home_id}_${thing_id}`,
+          payload: JSON.stringify(payload)
+        }).promise()
+      })
+
   )
 }
 

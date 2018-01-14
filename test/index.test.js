@@ -3,10 +3,9 @@ const sinon = require('sinon')
 const chai = require('chai')
 const expect = chai.expect
 const rewire = require('rewire')
-
 chai.use(require('sinon-chai'))
 
-describe('iot_zwave', function () {
+describe.skip('iot_zwave', function () {
   let mycode
   this.timeout(10000)
 
@@ -38,7 +37,7 @@ describe('iot_zwave', function () {
 
   describe.skip('zwave_on_value_added', () => false)
 
-  describe.skip('thingShadows_on_delta_2', () => false)
+  describe.skip('thingShadows_on_delta_thing', () => false)
 
   describe.skip('SIGINT', () => false)
 
@@ -48,5 +47,5 @@ describe('iot_zwave', function () {
 
   describe.skip('zwave_on_driver_ready', () => false)
 
-  describe.skip('thingShadow_on_delta_1', () => false)
+  describe.skip('thingShadow_on_delta_hub', () => false)
 })

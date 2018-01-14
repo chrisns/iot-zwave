@@ -3,6 +3,8 @@
 const AWS = require('aws-sdk')
 const awsIot = require('aws-iot-device-sdk')
 const Queue = require('promise-queue')
+const ZWave = require('openzwave-shared')
+
 const _ = {
   set: require('lodash.set'),
   mapValues: require('lodash.mapvalues'),
@@ -41,8 +43,6 @@ const thingShadows = awsIot.thingShadow({
   debug: DEBUG
 })
 
-const ZWave = require('openzwave-shared')
-
 const zwave = new ZWave({
   Logging: DEBUG,
   ConsoleOutput: DEBUG,
@@ -67,12 +67,12 @@ module.exports.update_thing = async (thing_id, update) => {
 
   Object.entries(update).forEach(([genre, paramset]) =>
     Object.entries(paramset).forEach(([param, value]) => {
-      let path = `state.desired[${genre}][${param}]`
-      let existing = _.get(JSON.parse(shadow.payload), path)
-      if (existing && existing === value) {
-        _.set(payload, path, null)
+        let path = `state.desired[${genre}][${param}]`
+        let existing = _.get(JSON.parse(shadow.payload), path)
+        if (existing && existing === value) {
+          _.set(payload, path, null)
+        }
       }
-    }
     )
   )
   return queue.add(() =>

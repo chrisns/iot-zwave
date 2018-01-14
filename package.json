@@ -14,7 +14,9 @@
   "dependencies": {
     "aws-iot-device-sdk": "^2.2.0",
     "aws-sdk": "^2.168.0",
+    "lodash.get": "^4.4.2",
     "lodash.mapvalues": "^4.6.0",
+    "lodash.matches": "^4.6.0",
     "lodash.pickby": "^4.6.0",
     "lodash.set": "^4.3.2",
     "openzwave-shared": "^1.4.0",

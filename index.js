@@ -72,7 +72,7 @@ module.exports.setValue = (thing_id, genre, label, value) => zwave.setValue(...t
 
 module.exports.zwave_on_value_added = (nodeid, comclass, value) => things = _.set(things, `zwave_${nodeid}.${value.genre}.${value.label}`, value.value_id)
 
-module.exports.thingShadows_on_delta_2 = (thingName, stateObject) => {
+module.exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
   if (thingName === `zwave_${home_id}`) return
   Object.entries(stateObject.state).forEach(([genre, values]) =>
     Object.entries(values).forEach(([label, value]) =>
@@ -113,7 +113,7 @@ module.exports.zwave_on_driver_ready = homeid => {
     .then(() => thingShadows.register(params.thingName))
 }
 
-module.exports.thingShadow_on_delta_1 = (thingName, stateObject) => {
+module.exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   if (thingName !== `zwave_${home_id}`) return
 
   const update = key => queue.add(() =>
@@ -151,15 +151,16 @@ module.exports.thingShadow_on_delta_1 = (thingName, stateObject) => {
 if (!global.it) {
   zwave.connect(DEVICE)
   zwave.on('value added', module.exports.zwave_on_value_added)
+  zwave.on('value added', (nodeid, comclass, value) => console.debug('value added', nodeid, comclass, value))
   zwave.on('driver ready', homeid => console.log('scanning homeid=0x%s...', homeid.toString(16)))
   zwave.on('scan complete', () => console.log('====> scan complete, hit ^C to finish.'))
 
-  thingShadows.on('delta', module.exports.thingShadow_on_delta_1)
+  thingShadows.on('delta', module.exports.thingShadow_on_delta_hub)
   zwave.on('driver ready', module.exports.zwave_on_driver_ready)
   zwave.on('node available', module.exports.zwave_on_node_available)
   zwave.on('node removed', module.exports.zwave_on_node_removed)
   process.on('SIGINT', module.exports.SIGINT)
-  thingShadows.on('delta', module.exports.thingShadows_on_delta_2)
+  thingShadows.on('delta', module.exports.thingShadows_on_delta_thing)
   zwave.on('driver failed', module.exports.zwave_driver_failed)
 
   zwave.on('value added', module.exports.value_update)

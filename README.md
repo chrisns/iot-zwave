@@ -129,6 +129,9 @@ Because Amazon IOT inflicts a 8kb [limit](http://docs.amazonaws.cn/en_us/general
 ## Pre-requisites
 - You will need to make a [Thing Type](http://docs.aws.amazon.com/iot/latest/developerguide/thing-types.html) with the name `zwave`. you don't need to add attributes but I added `manufacturerid`, `productid`, `producttype` to mine so I can filter by those things.
 
+## Known limitations
+Currently make an awful lot more calls to AWS than I need to, this should really be batched up by maybe a few ms
+
 ## TODO
 These are features I'd like to provide, but feel free to chip in
 - [x] read zwave config

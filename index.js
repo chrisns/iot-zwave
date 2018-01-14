@@ -75,11 +75,22 @@ exports.update_thing = async (thing_id, update) => {
     }
     )
   )
-  return queue.add(() =>
-    iotdata.updateThingShadow({
-      thingName: `zwave_${home_id}_${thing_id}`,
-      payload: JSON.stringify(payload)
-    }).promise()
+  return queue.add(async () => {
+    try {
+      await iotdata.updateThingShadow({
+        thingName: `zwave_${home_id}_${thing_id}`,
+        payload: JSON.stringify(payload)
+      }).promise()
+    } catch (error) { // @TODO make specfic
+      await iot.createThing({
+        thingName: params.thingName
+      }).promise()
+      await iotdata.updateThingShadow({
+        thingName: `zwave_${home_id}_${thing_id}`,
+        payload: JSON.stringify(payload)
+      }).promise()
+    }
+  }
   )
 }
 
@@ -128,10 +139,6 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
     await iot.updateThing(params).promise()
   } catch (error) {
     await iot.createThing(params).promise()
-    await iotdata.updateThingShadow({
-      thingName: `zwave_${home_id}_${nodeid}`,
-      payload: JSON.stringify({state: {}})
-    }).promise()
   }
   await thingShadows.register(params.thingName)
 }

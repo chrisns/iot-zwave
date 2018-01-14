@@ -130,7 +130,7 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
     await iot.createThing(params).promise()
     await iotdata.updateThingShadow({
       thingName: `zwave_${home_id}_${nodeid}`,
-      payload: JSON.stringify({})
+      payload: JSON.stringify({state: {}})
     }).promise()
   }
   await thingShadows.register(params.thingName)

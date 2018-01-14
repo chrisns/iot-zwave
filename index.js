@@ -84,7 +84,6 @@ exports.update_thing = async (thing_id, update) => {
       }
     )
   )
-  console.log("PAYLOAD", JSON.stringify(payload))
   return queue.add(() =>
     iotdata.updateThingShadow({
       thingName: `zwave_${home_id}_${thing_id}`,

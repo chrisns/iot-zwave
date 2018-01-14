@@ -6,7 +6,8 @@ const Queue = require('promise-queue')
 const _ = {
   set: require('lodash.set'),
   mapValues: require('lodash.mapvalues'),
-  pickBy: require('lodash.pickby')
+  pickBy: require('lodash.pickby'),
+  get: require('lodash.get')
 }
 const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE} = process.env
 
@@ -59,26 +60,50 @@ module.exports.value_update = (nodeid, comclass, value) =>
     value.node_id,
     _.set({}, `${value.genre}.${value.label}`, value.value))
 
-module.exports.update_thing = (thing_id, update) => {
-  console.log('update_thing', thing_id, update)
+module.exports.update_thing = async (thing_id, update) => {
+  let payload = {state: {reported: update}}
+
+  let shadow = await iotdata.getThingShadow({thingName: `zwave_${home_id}_${thing_id}`}).promise()
+
+  Object.entries(update).forEach(([genre, paramset]) =>
+    Object.entries(paramset).forEach(([param, value]) => {
+      let path = `state.desired[${genre}][${param}]`
+      let existing = _.get(JSON.parse(shadow.payload), path)
+      if (existing && existing === value) {
+        _.set(payload, path, null)
+      }
+    }
+    )
+  )
   return queue.add(() =>
     iotdata.updateThingShadow({
       thingName: `zwave_${home_id}_${thing_id}`,
-      payload: JSON.stringify({state: {reported: update}})
+      payload: JSON.stringify(payload)
     }).promise()
   )
 }
-module.exports.setValue = (thing_id, genre, label, value) => zwave.setValue(...things[thing_id][genre][label].split('-').concat([value]))
 
-module.exports.zwave_on_value_added = (nodeid, comclass, value) => things = _.set(things, `zwave_${nodeid}.${value.genre}.${value.label}`, value.value_id)
+module.exports.setValue = (thing_id, genre, label, value) =>
+  zwave.setValue(...things[thing_id][genre][label].split('-').concat([value]))
+
+module.exports.zwave_on_value_added = (nodeid, comclass, value) =>
+  things = _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}`, value.value_id)
 
 module.exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
   if (thingName === `zwave_${home_id}`) return
   Object.entries(stateObject.state).forEach(([genre, values]) =>
     Object.entries(values).forEach(([label, value]) =>
-      module.exports.setValue(thingName, genre, label, value)
+      module.exports.try(() => module.exports.setValue(thingName, genre, label, value))
     )
   )
+}
+
+module.exports.try = func => {
+  try {
+    func()
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 module.exports.SIGINT = () => {
@@ -87,7 +112,8 @@ module.exports.SIGINT = () => {
   process.exit()
 }
 
-module.exports.zwave_on_node_removed = nodeid => iot.deleteThing({thingName: `zwave_${nodeid}`})
+module.exports.zwave_on_node_removed = nodeid =>
+  iot.deleteThing({thingName: `zwave_${home_id}_${nodeid}`})
 
 module.exports.zwave_on_node_available = (nodeid, nodeinfo) => {
   let params = {

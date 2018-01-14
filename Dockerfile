@@ -10,10 +10,11 @@ RUN apk add --no-cache --virtual .run-deps \
         python2-dev \
         libffi-dev \
         alpine-sdk \
-  && npm i \
-  && npm run lint \
+#  && npm i \
+#  && npm run lint \
 #  && npm test \
-  && npm prune --production \
+#  && npm prune --production \
+  && npm i --production \
   && apk --purge del .build-deps
 
 ENV AWS_ACCESS_KEY=""

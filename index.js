@@ -80,16 +80,16 @@ exports.update_thing = async (thing_id, update) => {
       thingName: `zwave_${home_id}_${thing_id}`,
       payload: JSON.stringify(payload)
     }).promise()
-      .catch(async () => { // @TODO make more specfic to when there isn't a thing
-        await iot.createThing({
-          thingName: params.thingName
+      .catch(() => // @TODO make more specfic to when there isn't a thing
+        iot.createThing({
+          thingName: params.thingName,
+          thingTypeName: 'zwave'
         }).promise()
-        await iotdata.updateThingShadow({
-          thingName: `zwave_${home_id}_${thing_id}`,
-          payload: JSON.stringify(payload)
-        }).promise()
-      })
-
+          .then(() => iotdata.updateThingShadow({
+            thingName: `zwave_${home_id}_${thing_id}`,
+            payload: JSON.stringify(payload)
+          }).promise())
+      )
   )
 }
 

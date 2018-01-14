@@ -67,12 +67,12 @@ exports.update_thing = async (thing_id, update) => {
 
   Object.entries(update).forEach(([genre, paramset]) =>
     Object.entries(paramset).forEach(([param, value]) => {
-      let path = `state.desired[${genre}][${param}]`
-      let existing = _.get(JSON.parse(shadow.payload), path)
-      if (existing && existing === value) {
-        _.set(payload, path, null)
+        let path = `state.desired[${genre}][${param}]`
+        let existing = _.get(JSON.parse(shadow.payload), path)
+        if (existing && existing === value) {
+          _.set(payload, path, null)
+        }
       }
-    }
     )
   )
   return queue.add(() =>
@@ -115,7 +115,7 @@ exports.SIGINT = () => {
 exports.zwave_on_node_removed = nodeid =>
   iot.deleteThing({thingName: `zwave_${home_id}_${nodeid}`})
 
-exports.zwave_on_node_available = (nodeid, nodeinfo) => {
+exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
   let params = {
     thingName: `zwave_${home_id}_${nodeid}`,
     thingTypeName: 'zwave',
@@ -124,9 +124,17 @@ exports.zwave_on_node_available = (nodeid, nodeinfo) => {
     }
   }
   console.log('node available', params)
-  return iot.createThing(params).promise()
-    .catch(() => iot.updateThing(params).promise())
-    .then(() => thingShadows.register(params.thingName))
+  try {
+    await iot.updateThing(params).promise()
+  }
+  catch {
+    await iot.createThing(params).promise()
+    await iotdata.updateThingShadow({
+      thingName: `zwave_${home_id}_${nodeid}`,
+      payload: JSON.stringify({})
+    }).promise()
+  }
+  return await thingShadows.register(params.thingName)
 }
 
 exports.zwave_on_driver_ready = homeid => {

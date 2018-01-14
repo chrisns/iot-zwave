@@ -49,18 +49,18 @@ const zwave = new ZWave({
   NetworkKey: ZWAVE_NETWORK_KEY
 })
 
-module.exports.zwave_driver_failed = () => {
+exports.zwave_driver_failed = () => {
   console.log('driver failed')
   zwave.disconnect()
   process.exit()
 }
 
-module.exports.value_update = (nodeid, comclass, value) =>
-  module.exports.update_thing(
+exports.value_update = (nodeid, comclass, value) =>
+  exports.update_thing(
     value.node_id,
     _.set({}, `${value.genre}.${value.label}`, value.value))
 
-module.exports.update_thing = async (thing_id, update) => {
+exports.update_thing = async (thing_id, update) => {
   let payload = {state: {reported: update}}
 
   let shadow = await iotdata.getThingShadow({thingName: `zwave_${home_id}_${thing_id}`}).promise()
@@ -83,22 +83,22 @@ module.exports.update_thing = async (thing_id, update) => {
   )
 }
 
-module.exports.setValue = (thing_id, genre, label, value) =>
+exports.setValue = (thing_id, genre, label, value) =>
   zwave.setValue(...things[thing_id][genre][label].split('-').concat([value]))
 
-module.exports.zwave_on_value_added = (nodeid, comclass, value) =>
+exports.zwave_on_value_added = (nodeid, comclass, value) =>
   things = _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}`, value.value_id)
 
-module.exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
+exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
   if (thingName === `zwave_${home_id}`) return
   Object.entries(stateObject.state).forEach(([genre, values]) =>
     Object.entries(values).forEach(([label, value]) =>
-      module.exports.try(() => module.exports.setValue(thingName, genre, label, value))
+      exports.silent_try(() => exports.setValue(thingName, genre, label, value))
     )
   )
 }
 
-module.exports.try = func => {
+exports.silent_try = func => {
   try {
     func()
   } catch (error) {
@@ -106,16 +106,16 @@ module.exports.try = func => {
   }
 }
 
-module.exports.SIGINT = () => {
+exports.SIGINT = () => {
   console.log('disconnecting...')
   zwave.disconnect(DEVICE)
   process.exit()
 }
 
-module.exports.zwave_on_node_removed = nodeid =>
+exports.zwave_on_node_removed = nodeid =>
   iot.deleteThing({thingName: `zwave_${home_id}_${nodeid}`})
 
-module.exports.zwave_on_node_available = (nodeid, nodeinfo) => {
+exports.zwave_on_node_available = (nodeid, nodeinfo) => {
   let params = {
     thingName: `zwave_${home_id}_${nodeid}`,
     thingTypeName: 'zwave',
@@ -129,7 +129,7 @@ module.exports.zwave_on_node_available = (nodeid, nodeinfo) => {
     .then(() => thingShadows.register(params.thingName))
 }
 
-module.exports.zwave_on_driver_ready = homeid => {
+exports.zwave_on_driver_ready = homeid => {
   home_id = homeid.toString(16)
   let params = {
     thingName: `zwave_${home_id}`
@@ -139,7 +139,7 @@ module.exports.zwave_on_driver_ready = homeid => {
     .then(() => thingShadows.register(params.thingName))
 }
 
-module.exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
+exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   if (thingName !== `zwave_${home_id}`) return
 
   const update = key => queue.add(() =>
@@ -176,19 +176,19 @@ module.exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
 
 if (!global.it) {
   zwave.connect(DEVICE)
-  zwave.on('value added', module.exports.zwave_on_value_added)
+  zwave.on('value added', exports.zwave_on_value_added)
   zwave.on('value added', (nodeid, comclass, value) => console.debug('value added', nodeid, comclass, value))
   zwave.on('driver ready', homeid => console.log('scanning homeid=0x%s...', homeid.toString(16)))
   zwave.on('scan complete', () => console.log('====> scan complete, hit ^C to finish.'))
 
-  thingShadows.on('delta', module.exports.thingShadow_on_delta_hub)
-  zwave.on('driver ready', module.exports.zwave_on_driver_ready)
-  zwave.on('node available', module.exports.zwave_on_node_available)
-  zwave.on('node removed', module.exports.zwave_on_node_removed)
-  process.on('SIGINT', module.exports.SIGINT)
-  thingShadows.on('delta', module.exports.thingShadows_on_delta_thing)
-  zwave.on('driver failed', module.exports.zwave_driver_failed)
+  thingShadows.on('delta', exports.thingShadow_on_delta_hub)
+  zwave.on('driver ready', exports.zwave_on_driver_ready)
+  zwave.on('node available', exports.zwave_on_node_available)
+  zwave.on('node removed', exports.zwave_on_node_removed)
+  process.on('SIGINT', exports.SIGINT)
+  thingShadows.on('delta', exports.thingShadows_on_delta_thing)
+  zwave.on('driver failed', exports.zwave_driver_failed)
 
-  zwave.on('value added', module.exports.value_update)
-  zwave.on('value changed', module.exports.value_update)
+  zwave.on('value added', exports.value_update)
+  zwave.on('value changed', exports.value_update)
 }

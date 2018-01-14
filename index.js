@@ -133,7 +133,7 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
       payload: JSON.stringify({})
     }).promise()
   }
-  return await thingShadows.register(params.thingName)
+  await thingShadows.register(params.thingName)
 }
 
 exports.zwave_on_driver_ready = homeid => {

@@ -53,12 +53,6 @@ const zwave = new ZWave({
   NetworkKey: ZWAVE_NETWORK_KEY
 })
 
-exports.zwave_driver_failed = () => {
-  console.log("driver failed")
-  zwave.disconnect()
-  process.exit()
-}
-
 exports.value_update = (nodeid, comclass, value) =>
   exports.update_thing(
     value.node_id,
@@ -243,7 +237,7 @@ zwave.on("node available", exports.zwave_on_node_available)
 zwave.on("node removed", exports.zwave_on_node_removed)
 
 process.on("SIGINT", exports.SIGINT)
-zwave.on("driver failed", exports.zwave_driver_failed)
+zwave.on("driver failed", exports.SIGINT)
 
 zwave.on("notification", (nodeId, notification) => console.log("notification", nodeId, notification))
 

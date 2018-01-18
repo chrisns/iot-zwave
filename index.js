@@ -24,7 +24,6 @@ const iot = new AWS.Iot({
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
   region: AWS_REGION,
   debug: DEBUG
-
 })
 
 const iotdata = new AWS.IotData({
@@ -63,7 +62,7 @@ exports.zwave_driver_failed = () => {
 exports.value_update = (nodeid, comclass, value) =>
   exports.update_thing(
     value.node_id,
-    _.set({}, `${value.genre}.${value.label}`, value.value || 0))
+    _.set({}, `${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value || 0))
 
 exports.update_thing = async (thing_id, update) => {
   let payload = {state: {reported: update}}
@@ -72,7 +71,7 @@ exports.update_thing = async (thing_id, update) => {
     shadow = await iotdata.getThingShadow({thingName: `zwave_${home_id}_${thing_id}`}).promise()
   }
   catch (error) {
-    console.error(error)
+    console.error("caught error", error)
   }
   Object.entries(update).forEach(([genre, paramset]) =>
     Object.entries(paramset).forEach(([param, value]) => {
@@ -84,30 +83,32 @@ exports.update_thing = async (thing_id, update) => {
       }
     )
   )
-  return queue.add(() =>
-    iotdata.updateThingShadow({
-      thingName: `zwave_${home_id}_${thing_id}`,
-      payload: JSON.stringify(payload)
-    }).promise()
-      .catch(() => // @TODO make more specfic to when there isn't a thing
-        iot.createThing({
-          thingName: params.thingName,
-          thingTypeName: "zwave"
-        }).promise()
-          .then(() => iotdata.updateThingShadow({
-            thingName: `zwave_${home_id}_${thing_id}`,
-            payload: JSON.stringify(payload)
-          }).promise())
-      )
-  )
+  await queue.add(async () => {
+    try {
+      await iotdata.updateThingShadow({
+        thingName: `zwave_${home_id}_${thing_id}`,
+        payload: JSON.stringify(payload)
+      }).promise()
+    }
+    catch (error) {
+      await iot.createThing({
+        thingName: `zwave_${home_id}_${thing_id}`,
+        thingTypeName: "zwave"
+      }).promise()
+      await iotdata.updateThingShadow({
+        thingName: `zwave_${home_id}_${thing_id}`,
+        payload: JSON.stringify(payload)
+      }).promise()
+      await subscribe_to_thing(`zwave_${home_id}_${thing_id}`)
+    }
+  })
 }
 
-exports.setValue = (thing_id, genre, label, value) => {
-  zwave.setValue(...things[thing_id][genre][label].split("-").concat([value]))
-}
+exports.setValue = (thing_id, genre, label, value) =>
+  zwave.setValue(...things[thing_id][genre][label].split("-"), value)
 
 exports.zwave_on_value_added = (nodeid, comclass, value) =>
-  things = _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}`, value.value_id)
+  things = _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value_id)
 
 exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
   if (thingName === `zwave_${home_id}`) return
@@ -153,7 +154,7 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
   } catch (error) {
     await iot.createThing(params).promise()
   }
-  subscribe_to_thing(params.thingName)
+  await subscribe_to_thing(params.thingName)
 }
 
 const subscriptions = []
@@ -161,6 +162,7 @@ const subscriptions = []
 const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/delta`) => {
   if (subscriptions.includes(topic)) return
   subscriptions.push(topic)
+  console.log("subscribing to topic", topic)
   try {
     await awsMqttClient.async_subscribe(topic, {qos: 1})
     await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({state: {desired: {ignore_me: null}}}))
@@ -171,15 +173,25 @@ const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/s
   }
 }
 
-exports.zwave_on_driver_ready = homeid => {
+exports.zwave_on_driver_ready = async homeid => {
   home_id = homeid.toString(16)
   let params = {
     thingName: `zwave_${home_id}`
   }
-  return iot.createThing(params).promise()
-    .catch(() => iot.updateThing(params).promise())
-    .then(() => subscribe_to_thing(params.thingName))
-  // .then(() => thingShadows.register(params.thingName))
+  try {
+    await iot.updateThing(params).promise()
+  }
+  catch (error) {
+    console.error(`couldn't update ${params.thingName} trying to create it`)
+    await iot.createThing(params).promise()
+  }
+  await awsMqttClient.async_publish(`$aws/things/${params.thingName}/shadow/update`, JSON.stringify({
+    state: {
+      desired: {secureAddNode: 0, healNetwork: 0, addNode: 0, cancelControllerCommand: 0, removeNode: 0, softReset: 0},
+      reported: {secureAddNode: 0, healNetwork: 0, addNode: 0, cancelControllerCommand: 0, removeNode: 0, softReset: 0}
+    }
+  }))
+  await subscribe_to_thing(params.thingName)
 }
 
 exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
@@ -217,20 +229,23 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   }
 }
 
-// if (!global.it) {
 zwave.connect(DEVICE)
 zwave.on("value added", exports.zwave_on_value_added)
 zwave.on("value added", (nodeid, comclass, value) => console.debug("value added", nodeid, comclass, value))
 zwave.on("driver ready", homeid => console.log("scanning homeid=0x%s...", homeid.toString(16)))
 zwave.on("scan complete", () => console.log("====> scan complete."))
 
-// thingShadows.on('delta', exports.thingShadow_on_delta_hub)
 zwave.on("driver ready", exports.zwave_on_driver_ready)
+
+zwave.on("node naming", exports.zwave_on_node_available)
+zwave.on("node ready", exports.zwave_on_node_available)
 zwave.on("node available", exports.zwave_on_node_available)
 zwave.on("node removed", exports.zwave_on_node_removed)
+
 process.on("SIGINT", exports.SIGINT)
-// thingShadows.on('delta', exports.thingShadows_on_delta_thing)
 zwave.on("driver failed", exports.zwave_driver_failed)
+
+zwave.on("notification", (nodeId, notification) => console.log("notification", nodeId, notification))
 
 zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)
@@ -238,8 +253,8 @@ zwave.on("value changed", exports.value_update)
 awsMqttClient.on("message", (topic, message) => {
   let thing_name = topic.split("/")[2]
   let payload = JSON.parse(message.toString())
+  console.log(payload)
   exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
 })
 
-// }

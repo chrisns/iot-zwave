@@ -252,3 +252,8 @@ awsMqttClient.on("message", (topic, message) => {
   exports.thingShadows_on_delta_thing(thing_name, payload)
 })
 
+awsMqttClient.on("connect", () => awsMqttClient.subscribe(subscriptions))
+awsMqttClient.on("connect", () => console.log("aws connected"))
+awsMqttClient.on("error", (error) => console.error("aws", error))
+awsMqttClient.on("close", () => console.error("aws connection close"))
+awsMqttClient.on("offline", () => console.log("aws offline"))

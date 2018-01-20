@@ -18,7 +18,7 @@ const queue = new Queue(1, Infinity)
 const logger = async (...log) => {
   console.log(...log)
   try {
-    await awsMqttClient.async_publish(`zwave/log`, JSON.stringify(homeid, log))
+    await awsMqttClient.async_publish(`zwave/log`, JSON.stringify({homeid: homeid, log:log}))
   } catch (e) {}
 }
 

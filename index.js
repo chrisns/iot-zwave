@@ -16,16 +16,14 @@ const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION,
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
 
-const logger = async (...log) => {
-  console.log(...log)
-  try {
-    await awsMqttClient.async_publish(`zwave/log`, JSON.stringify({homeid: homeid, log: log}))
-  } catch (e) {}
-}
-
 let things = {}
 
 let home_id
+
+const logger = (...log) => {
+  console.log(...log)
+  awsMqttClient.async_publish(`zwave/log`, JSON.stringify({homeid: home_id, log: log}))
+}
 
 const iot = new AWS.Iot({
   accessKeyId: AWS_ACCESS_KEY,
@@ -250,8 +248,11 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
 s3.getObject().promise()
   .then(response => response.Body)
   .then(JSON.parse)
-  .catch(() => {})
-  .then(persisted_things => things = persisted_things)
+  .catch(() => {return {}})
+  .then(persisted_things => {
+    things = persisted_things
+    logger("restored these things", things)
+  })
   .then(() => zwave.connect(DEVICE))
 
 zwave.on("value added", exports.zwave_on_value_added)

@@ -11,14 +11,15 @@ const _ = {
   pickBy: require("lodash.pickby"),
   get: require("lodash.get")
 }
-const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE} = process.env
+const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY} = process.env
 
 const queue = new Queue(1, Infinity)
+const s3queue = new Queue(1, Infinity)
 
 const logger = async (...log) => {
   console.log(...log)
   try {
-    await awsMqttClient.async_publish(`zwave/log`, JSON.stringify({homeid: homeid, log:log}))
+    await awsMqttClient.async_publish(`zwave/log`, JSON.stringify({homeid: homeid, log: log}))
   } catch (e) {}
 }
 
@@ -32,6 +33,19 @@ const iot = new AWS.Iot({
   region: AWS_REGION,
   debug: DEBUG
 })
+
+const s3 = new AWS.S3({
+  region: AWS_REGION,
+  params: {
+    "Bucket": BUCKET,
+    "Key": BUCKET_KEY
+  }
+})
+
+const persist_things = () =>
+  s3.putObject({
+    Body: JSON.stringify((things))
+  }).promise()
 
 const iotdata = new AWS.IotData({
   endpoint: AWS_IOT_ENDPOINT_HOST,
@@ -105,11 +119,13 @@ exports.update_thing = async (thing_id, update) => {
   })
 }
 
-exports.setValue = (thing_id, genre, label, value) =>
+exports.setValue = async (thing_id, genre, label, value, again = false) =>
   zwave.setValue(...things[thing_id][genre][label].split("-"), value)
 
-exports.zwave_on_value_added = (nodeid, comclass, value) =>
-  things = _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value_id)
+exports.zwave_on_value_added = (nodeid, comclass, value) => {
+  _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value_id)
+  s3queue.add(persist_things)
+}
 
 exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
   if (thingName === `zwave_${home_id}`) return
@@ -170,7 +186,7 @@ const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/s
 
   }
   catch (error) {
-    console.error(error)
+    logger(error)
   }
 }
 
@@ -183,7 +199,7 @@ exports.zwave_on_driver_ready = async homeid => {
     await iot.updateThing(params).promise()
   }
   catch (error) {
-    console.error(`couldn't update ${params.thingName} trying to create it`)
+    logger(`couldn't update ${params.thingName} trying to create it`)
     await iot.createThing(params).promise()
   }
   await awsMqttClient.async_publish(`$aws/things/${params.thingName}/shadow/update`, JSON.stringify({
@@ -230,9 +246,15 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   }
 }
 
-zwave.connect(DEVICE)
+s3.getObject().promise()
+  .then(response => response.Body)
+  .then(JSON.parse)
+  .catch(() => {})
+  .then(persisted_things => things = persisted_things)
+  .then(() => zwave.connect(DEVICE))
+
 zwave.on("value added", exports.zwave_on_value_added)
-zwave.on("value added", (nodeid, comclass, value) => console.debug("value added", nodeid, comclass, value))
+zwave.on("value added", (nodeid, comclass, value) => logger("value added", nodeid, comclass, value))
 zwave.on("driver ready", homeid => logger("scanning homeid=0x%s...", homeid.toString(16)))
 zwave.on("scan complete", () => logger("====> scan complete."))
 
@@ -261,6 +283,6 @@ awsMqttClient.on("message", (topic, message) => {
 
 awsMqttClient.on("connect", () => awsMqttClient.subscribe(subscriptions))
 awsMqttClient.on("connect", () => logger("aws connected"))
-awsMqttClient.on("error", (error) => console.error("aws", error))
-awsMqttClient.on("close", () => console.error("aws connection close"))
+awsMqttClient.on("error", (error) => logger("aws", error))
+awsMqttClient.on("close", () => logger("aws connection close"))
 awsMqttClient.on("offline", () => logger("aws offline"))

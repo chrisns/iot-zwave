@@ -10,7 +10,14 @@ pipeline:
 
   deploy:
     image: docker
-    secrets: [ AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY ]
+    secrets:
+      - AWS_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_IOT_ENDPOINT_HOST
+      - AWS_REGION
+      - ZWAVE_NETWORK_KEY
+      - BUCKET
+      - BUCKET_KEY
     commands:
       - docker deploy --compose-file docker-compose.yml iot-zwave
     volumes:

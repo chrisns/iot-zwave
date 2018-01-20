@@ -15,6 +15,13 @@ const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION,
 
 const queue = new Queue(1, Infinity)
 
+const logger = async (...log) => {
+  console.log(...log)
+  try {
+    await awsMqttClient.async_publish(`zwave/log`, JSON.stringify(homeid, log))
+  } catch (e) {}
+}
+
 let things = {}
 
 let home_id
@@ -126,7 +133,7 @@ exports.silent_try = func => {
 }
 
 exports.SIGINT = () => {
-  console.log("disconnecting...")
+  logger("disconnecting...")
   zwave.disconnect(DEVICE)
   process.exit()
 }
@@ -142,7 +149,7 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
       attributes: _.mapValues(_.pickBy(nodeinfo, info => info.length >= 1 && info.length <= 800), v => v.replace(new RegExp("[ |\(|\)]", "g"), "_"))
     }
   }
-  console.log("node available", params)
+  logger("node available", params)
   try {
     await iot.updateThing(params).promise()
   } catch (error) {
@@ -156,7 +163,7 @@ const subscriptions = []
 const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/delta`) => {
   if (subscriptions.includes(topic)) return
   subscriptions.push(topic)
-  console.log("subscribing to topic", topic)
+  logger("subscribing to topic", topic)
   try {
     await awsMqttClient.async_subscribe(topic, {qos: 1})
     await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({state: {desired: {ignore_me: null}}}))
@@ -226,8 +233,8 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
 zwave.connect(DEVICE)
 zwave.on("value added", exports.zwave_on_value_added)
 zwave.on("value added", (nodeid, comclass, value) => console.debug("value added", nodeid, comclass, value))
-zwave.on("driver ready", homeid => console.log("scanning homeid=0x%s...", homeid.toString(16)))
-zwave.on("scan complete", () => console.log("====> scan complete."))
+zwave.on("driver ready", homeid => logger("scanning homeid=0x%s...", homeid.toString(16)))
+zwave.on("scan complete", () => logger("====> scan complete."))
 
 zwave.on("driver ready", exports.zwave_on_driver_ready)
 
@@ -239,7 +246,7 @@ zwave.on("node removed", exports.zwave_on_node_removed)
 process.on("SIGINT", exports.SIGINT)
 zwave.on("driver failed", exports.SIGINT)
 
-zwave.on("notification", (nodeId, notification) => console.log("notification", nodeId, notification))
+zwave.on("notification", (nodeId, notification) => logger("notification", nodeId, notification))
 
 zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)
@@ -247,13 +254,13 @@ zwave.on("value changed", exports.value_update)
 awsMqttClient.on("message", (topic, message) => {
   let thing_name = topic.split("/")[2]
   let payload = JSON.parse(message.toString())
-  console.log(payload)
+  logger(payload)
   exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
 })
 
 awsMqttClient.on("connect", () => awsMqttClient.subscribe(subscriptions))
-awsMqttClient.on("connect", () => console.log("aws connected"))
+awsMqttClient.on("connect", () => logger("aws connected"))
 awsMqttClient.on("error", (error) => console.error("aws", error))
 awsMqttClient.on("close", () => console.error("aws connection close"))
-awsMqttClient.on("offline", () => console.log("aws offline"))
+awsMqttClient.on("offline", () => logger("aws offline"))

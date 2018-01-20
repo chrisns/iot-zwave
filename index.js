@@ -35,8 +35,8 @@ const iot = new AWS.Iot({
 const s3 = new AWS.S3({
   region: AWS_REGION,
   params: {
-    "Bucket": BUCKET,
-    "Key": BUCKET_KEY
+    Bucket: BUCKET,
+    Key: BUCKET_KEY
   }
 })
 
@@ -123,7 +123,7 @@ exports.setValue = async (thing_id, genre, label, value, again = false) =>
 
 exports.zwave_on_value_added = (nodeid, comclass, value) => {
   _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value_id)
-  s3queue.add(persist_things)
+  s3queue.add(() => persist_things())
 }
 
 exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
@@ -248,7 +248,10 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
 s3.getObject().promise()
   .then(response => response.Body)
   .then(JSON.parse)
-  .catch(() => {return {}})
+  .catch((error) => {
+    logger(error)
+    return {}
+  })
   .then(persisted_things => {
     things = persisted_things
     logger("restored these things", things)

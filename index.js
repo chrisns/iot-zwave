@@ -205,8 +205,24 @@ exports.zwave_on_driver_ready = async homeid => {
   }
   await awsMqttClient.async_publish(`$aws/things/${params.thingName}/shadow/update`, JSON.stringify({
     state: {
-      desired: {secureAddNode: 0, healNetwork: 0, addNode: 0, cancelControllerCommand: 0, removeNode: 0, softReset: 0},
-      reported: {secureAddNode: 0, healNetwork: 0, addNode: 0, cancelControllerCommand: 0, removeNode: 0, softReset: 0}
+      desired: {
+        secureAddNode: 0,
+        healNetwork: 0,
+        addNode: 0,
+        cancelControllerCommand: 0,
+        removeNode: 0,
+        softReset: 0,
+        removeFailedNode: 0
+      },
+      reported: {
+        secureAddNode: 0,
+        healNetwork: 0,
+        addNode: 0,
+        cancelControllerCommand: 0,
+        removeNode: 0,
+        softReset: 0,
+        removeFailedNode: 0
+      }
     }
   }))
   await subscribe_to_thing(params.thingName)
@@ -243,6 +259,10 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   }
   if (stateObject.state.softReset) {
     zwave.softReset()
+    update("softReset")
+  }
+  if (stateObject.state.removeFailedNode) {
+    zwave.removeFailedNode(stateObject.state.removeFailedNode)
     update("softReset")
   }
 }

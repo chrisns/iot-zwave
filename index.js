@@ -263,7 +263,7 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   }
   if (stateObject.state.removeFailedNode) {
     zwave.removeFailedNode(stateObject.state.removeFailedNode)
-    update("softReset")
+    update("removeFailedNode")
   }
 }
 

@@ -59,8 +59,8 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_REGION
       - BACKUP_INTERVAL=12h
-      volumes:
-        - s3data:/data
+    volumes:
+      - s3data:/data
 
 volumes:
   s3data:

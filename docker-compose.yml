@@ -31,3 +31,37 @@ services:
       - BUCKET_KEY
       - DEVICE=/dev/ttyUSB1
       - DEBUG=TRUE
+    volumes:
+      - s3data:/data
+
+  s3vol:
+    deploy:
+      update_config:
+        failure_action: rollback
+      placement:
+        constraints:
+          - node.labels.zwave2 == true
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+      restart_policy:
+        condition: any
+        delay: 5s
+    image: elementar/s3-volume
+    command: s3://pinkzwave/pink_eu_zwave
+    environment:
+      - AWS_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
+      - BACKUP_INTERVAL=12h
+      volumes:
+        - s3data:/data
+
+volumes:
+  s3data:
+    driver: local

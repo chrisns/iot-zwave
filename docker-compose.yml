@@ -2,6 +2,8 @@ version: "3"
 services:
   zwave:
     deploy:
+      update_config:
+        failure_action: rollback
       placement:
         constraints:
           - node.labels.zwave2 == true

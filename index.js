@@ -308,10 +308,7 @@ awsMqttClient.on("message", (topic, message) => {
   exports.thingShadows_on_delta_thing(thing_name, payload)
 })
 
-awsMqttClient.on("connect", () => {
-  if (subscriptions.length > 0)
-    awsMqttClient.subscribe(subscriptions)
-})
+awsMqttClient.on("connect", () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))
 awsMqttClient.on("connect", () => logger("aws connected"))
 awsMqttClient.on("error", (error) => logger("aws", error))
 awsMqttClient.on("close", () => logger("aws connection close"))

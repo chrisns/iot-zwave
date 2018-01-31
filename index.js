@@ -300,6 +300,10 @@ zwave.on("notification", (nodeId, notification) => logger("notification", nodeId
 zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)
 
+zwave.on("node available", () => zwave.writeConfig())
+zwave.on("node removed", () => zwave.writeConfig())
+zwave.on("node ready", () => zwave.writeConfig())
+
 awsMqttClient.on("message", (topic, message) => {
   let thing_name = topic.split("/")[2]
   let payload = JSON.parse(message.toString())

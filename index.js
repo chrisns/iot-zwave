@@ -72,7 +72,6 @@ const zwave = new ZWave({
   Logging: DEBUG,
   ConsoleOutput: DEBUG,
   NetworkKey: ZWAVE_NETWORK_KEY,
-  RefreshAllUserCodes: false
 })
 
 exports.value_update = (nodeid, comclass, value) =>

@@ -55,9 +55,9 @@ services:
     image: elementar/s3-volume
     command: /data s3://pinkzwave/pink_eu_zwave
     environment:
-      - AWS_ACCESS_KEY
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY
-      - AWS_REGION
+      - AWS_DEFAULT_REGION=${AWS_REGION}
       - BACKUP_INTERVAL=12h
     volumes:
       - s3data:/data

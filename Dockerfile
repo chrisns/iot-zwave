@@ -32,6 +32,7 @@ ENV BUCKET=""
 ENV BUCKET_KEY=""
 ENV DEVICE=/dev/ttyUSB1
 ENV DEBUG=false
+ENV USER_DATA=/data
 
 CMD while [ ! -c ${DEVICE} ]; do \
   sleep 1; \

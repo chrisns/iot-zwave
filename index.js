@@ -11,7 +11,7 @@ const _ = {
   pickBy: require("lodash.pickby"),
   get: require("lodash.get")
 }
-const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY} = process.env
+const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY, USER_DATA} = process.env
 
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
@@ -72,6 +72,7 @@ const zwave = new ZWave({
   Logging: DEBUG,
   ConsoleOutput: DEBUG,
   NetworkKey: ZWAVE_NETWORK_KEY,
+  UserPath: USER_DATA
 })
 
 exports.value_update = (nodeid, comclass, value) =>

@@ -1,5 +1,5 @@
 FROM node:9-alpine as ozw-builder
-RUN apk --no-cache add eudev-dev
+RUN apk --no-cache add eudev-dev coreutils
 RUN apk --no-cache add linux-headers alpine-sdk python openssl
 
 RUN wget https://github.com/OpenZWave/open-zwave/archive/master.zip

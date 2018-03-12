@@ -237,34 +237,26 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
       payload: JSON.stringify({state: {reported: {[key]: stateObject.state[key]}}})
     }).promise())
 
-  if (stateObject.state.secureAddNode) {
-    zwave.addNode(true)
-    update("secureAddNode")
-  }
-  if (stateObject.state.healNetwork) {
-    zwave.healNetwork()
-    update("healNetwork")
-  }
-  if (stateObject.state.addNode) {
-    zwave.addNode()
-    update("addNode")
-  }
-  if (stateObject.state.cancelControllerCommand) {
-    zwave.cancelControllerCommand()
-    update("cancelControllerCommand")
-  }
-  if (stateObject.state.removeNode) {
-    zwave.removeNode()
-    update("removeNode")
-  }
-  if (stateObject.state.softReset) {
-    zwave.softReset()
-    update("softReset")
-  }
-  if (stateObject.state.removeFailedNode) {
-    zwave.removeFailedNode(stateObject.state.removeFailedNode)
-    update("removeFailedNode")
-  }
+  if (stateObject.state.secureAddNode)
+    update("secureAddNode").then(() => zwave.addNode(true))
+
+  if (stateObject.state.healNetwork)
+    update("healNetwork").then(() => zwave.healNetwork())
+
+  if (stateObject.state.addNode)
+    update("addNode").then(() => zwave.addNode())
+
+  if (stateObject.state.cancelControllerCommand)
+    update("cancelControllerCommand").then(() => zwave.cancelControllerCommand())
+
+  if (stateObject.state.removeNode)
+    update("removeNode").then(() => zwave.removeNode())
+
+  if (stateObject.state.softReset)
+    update("softReset").then(() => zwave.softReset())
+
+  if (stateObject.state.removeFailedNode)
+    update("removeFailedNode").then(() => zwave.removeFailedNode(stateObject.state.removeFailedNode))
 }
 
 s3.getObject().promise()

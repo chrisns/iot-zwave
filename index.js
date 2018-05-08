@@ -69,7 +69,7 @@ awsMqttClient.async_publish = util.promisify(awsMqttClient.publish)
 awsMqttClient.async_subscribe = util.promisify(awsMqttClient.subscribe)
 
 const zwave = new ZWave({
-  Logging: DEBUG,
+  Logging: false,
   ConsoleOutput: DEBUG,
   NetworkKey: ZWAVE_NETWORK_KEY,
   UserPath: USER_DATA

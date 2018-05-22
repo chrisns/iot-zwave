@@ -30,7 +30,7 @@ services:
       - BUCKET
       - BUCKET_KEY
       - DEVICE=/dev/ttyUSB1
-      - DEBUG=TRUE
+      - DEBUG=true
     volumes:
       - s3data:/data
 

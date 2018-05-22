@@ -38,4 +38,4 @@ CMD while [ ! -c ${DEVICE} ]; do \
   sleep 1; \
   echo "waiting for ${DEVICE}"; \
   done; \
-  npm start npm start
+  npm start

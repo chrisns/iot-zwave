@@ -11,7 +11,7 @@ const _ = {
   pickBy: require("lodash.pickby"),
   get: require("lodash.get")
 }
-const {AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY, USER_DATA} = process.env
+const { AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY, USER_DATA } = process.env
 
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
@@ -20,10 +20,7 @@ let things = {}
 
 let home_id
 
-const logger = (...log) => {
-  console.log(...log)
-  awsMqttClient.async_publish(`zwave/log`, JSON.stringify({homeid: home_id, log: log}))
-}
+const logger = (...log) => console.log(...log)
 
 const iot = new AWS.Iot({
   accessKeyId: AWS_ACCESS_KEY,
@@ -82,22 +79,22 @@ exports.value_update = (nodeid, comclass, value) =>
     _.set({}, `${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value || 0))
 
 exports.update_thing = async (thing_id, update) => {
-  let payload = {state: {reported: update}}
-  let shadow = {payload: "{}"}
+  let payload = { state: { reported: update } }
+  let shadow = { payload: "{}" }
   try {
-    shadow = await iotdata.getThingShadow({thingName: `zwave_${home_id}_${thing_id}`}).promise()
+    shadow = await iotdata.getThingShadow({ thingName: `zwave_${home_id}_${thing_id}` }).promise()
   }
   catch (error) {
     console.error("caught error", error)
   }
   Object.entries(update).forEach(([genre, paramset]) =>
     Object.entries(paramset).forEach(([param, value]) => {
-        let path = `state.desired[${genre}][${param}]`
-        let existing = _.get(JSON.parse(shadow.payload), path)
-        if (existing && existing === value) {
-          _.set(payload, path, null)
-        }
+      let path = `state.desired[${genre}][${param}]`
+      let existing = _.get(JSON.parse(shadow.payload), path)
+      if (existing && existing === value) {
+        _.set(payload, path, null)
       }
+    }
     )
   )
   await queue.add(async () => {
@@ -138,7 +135,7 @@ exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
   )
   iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
     thingName: thingName,
-    payload: JSON.stringify({state: {desired: null}})
+    payload: JSON.stringify({ state: { desired: null } })
   }).promise()
 }
 
@@ -157,7 +154,7 @@ exports.SIGINT = () => {
 }
 
 exports.zwave_on_node_removed = nodeid =>
-  iot.deleteThing({thingName: `zwave_${home_id}_${nodeid}`})
+  iot.deleteThing({ thingName: `zwave_${home_id}_${nodeid}` })
 
 exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
   let params = {
@@ -183,8 +180,8 @@ const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/s
   subscriptions.push(topic)
   logger("subscribing to topic", topic)
   try {
-    await awsMqttClient.async_subscribe(topic, {qos: 1})
-    await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({state: {desired: {ignore_me: null}}}))
+    await awsMqttClient.async_subscribe(topic, { qos: 1 })
+    await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({ state: { desired: { ignore_me: null } } }))
 
   }
   catch (error) {
@@ -235,7 +232,7 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
   const update = key => queue.add(() =>
     iotdata.updateThingShadow({
       thingName: thingName,
-      payload: JSON.stringify({state: {reported: {[key]: stateObject.state[key]}}})
+      payload: JSON.stringify({ state: { reported: { [key]: stateObject.state[key] } } })
     }).promise())
 
   if (stateObject.state.secureAddNode)

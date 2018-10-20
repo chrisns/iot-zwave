@@ -4,6 +4,8 @@ const AWS = require("aws-sdk")
 const Queue = require("promise-queue")
 const ZWave = require("openzwave-shared")
 const util = require("util")
+const repl = require('repl');
+const AWSMqtt = require("aws-mqtt-client").default
 
 const _ = {
   set: require("lodash.set"),
@@ -52,7 +54,6 @@ const iotdata = new AWS.IotData({
   debug: DEBUG
 })
 
-const AWSMqtt = require("aws-mqtt-client").default
 
 const awsMqttClient = new AWSMqtt({
   accessKeyId: AWS_ACCESS_KEY,
@@ -307,3 +308,5 @@ awsMqttClient.on("connect", () => logger("aws connected"))
 awsMqttClient.on("error", (error) => logger("aws", error))
 awsMqttClient.on("close", () => logger("aws connection close"))
 awsMqttClient.on("offline", () => logger("aws offline"))
+
+repl.start({ useGlobal: true, eval: (cmd, context, filename, callback) => callback(null, eval(cmd)) });

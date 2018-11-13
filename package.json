@@ -13,7 +13,7 @@
   "repository": "https://github.com/chrisns/iot-zwave",
   "dependencies": {
     "aws-mqtt-client": "0.0.5",
-    "aws-sdk": "^2.168.0",
+    "aws-sdk": "^2.355.0",
     "lodash.get": "^4.4.2",
     "lodash.mapvalues": "^4.6.0",
     "lodash.matches": "^4.6.0",

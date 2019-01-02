@@ -1,12 +1,21 @@
 FROM node:8-alpine as ozw-builder
 RUN apk --no-cache add eudev-dev coreutils
-RUN apk --no-cache add linux-headers alpine-sdk python openssl
+RUN apk --no-cache add linux-headers alpine-sdk python openssl libmicrohttpd-dev
 
 RUN wget https://github.com/OpenZWave/open-zwave/archive/master.zip
 RUN unzip master.zip
+RUN rm master.zip
 WORKDIR /open-zwave-master
 RUN make
 RUN make install
+
+WORKDIR /
+RUN wget https://github.com/OpenZWave/open-zwave-control-panel/archive/master.zip
+RUN unzip master.zip
+RUN rm master.zip
+WORKDIR /open-zwave-control-panel-master
+COPY ozwcp.Makefile Makefile
+RUN make
 
 WORKDIR /app
 COPY package-lock.json .
@@ -16,10 +25,10 @@ RUN npm audit fix
 COPY . .
 RUN npm prune --production
 
-
 FROM node:8-alpine
-RUN apk add --no-cache eudev-dev
+RUN apk add --no-cache eudev-dev libmicrohttpd
 COPY --from=ozw-builder /usr/local /usr/local
+COPY --from=ozw-builder /open-zwave-control-panel-master/ozwcp /usr/local/bin/ozwcp
 COPY --from=ozw-builder /app /app
 WORKDIR /app
 

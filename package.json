@@ -20,6 +20,7 @@
     "lodash.pickby": "^4.6.0",
     "lodash.set": "^4.3.2",
     "openzwave-shared": "^1.4.0",
+    "ozw-cli": "^0.2.2",
     "promise-queue": "^2.2.3"
   },
   "devDependencies": {

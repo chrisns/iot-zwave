@@ -4,8 +4,8 @@ const AWS = require("aws-sdk")
 const Queue = require("promise-queue")
 const ZWave = require("openzwave-shared")
 const util = require("util")
-const repl = require('repl');
 const AWSMqtt = require("aws-mqtt-client").default
+const net = require('net');
 
 const _ = {
   set: require("lodash.set"),
@@ -334,4 +334,10 @@ awsMqttClient.on("error", (error) => logger("aws", error))
 awsMqttClient.on("close", () => logger("aws connection close"))
 awsMqttClient.on("offline", () => logger("aws offline"))
 
-repl.start({ useGlobal: true, eval: (cmd, context, filename, callback) => callback(null, eval(cmd)) });
+net.createServer(socket => {
+  socket.write('Welcome to the z-wave cli!\n');
+  socket.on('data', data =>
+    socket.write(JSON.stringify(eval(`zwave.${data.toString()}`)) + "\n" || "ok\n")
+  )
+  socket.on('end', () => closeSocket(socket))
+}).listen(8888);

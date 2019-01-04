@@ -9,14 +9,6 @@ WORKDIR /open-zwave-master
 RUN make
 RUN make install
 
-WORKDIR /
-RUN wget https://github.com/OpenZWave/open-zwave-control-panel/archive/master.zip
-RUN unzip master.zip
-RUN rm master.zip
-WORKDIR /open-zwave-control-panel-master
-COPY ozwcp.Makefile Makefile
-RUN make
-
 WORKDIR /app
 COPY package-lock.json .
 COPY package.json .
@@ -26,9 +18,8 @@ COPY . .
 RUN npm prune --production
 
 FROM node:8-alpine
-RUN apk add --no-cache eudev-dev libmicrohttpd
+RUN apk add --no-cache eudev-dev busybox-extras
 COPY --from=ozw-builder /usr/local /usr/local
-COPY --from=ozw-builder /open-zwave-control-panel-master/ozwcp /usr/local/bin/ozwcp
 COPY --from=ozw-builder /app /app
 WORKDIR /app
 

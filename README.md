@@ -132,6 +132,9 @@ Because Amazon IOT inflicts a 8kb [limit](http://docs.amazonaws.cn/en_us/general
 ## Known limitations
 Currently make an awful lot more calls to AWS than I need to, this should really be batched up by maybe a few ms
 
+## Known vulnerabilities
+The app open a telnet interface on port `8888` that will allow arbitary execution of code scoped to the `zwave` object, though would be trivial to break out of that, so DO NOT EVER EVER EVER expose that port to anything that could connect to it that's not you!
+
 ## TODO
 These are features I'd like to provide, but feel free to chip in
 - [x] read zwave config
@@ -144,15 +147,14 @@ These are features I'd like to provide, but feel free to chip in
 - [x] handle adding secure nodes
 - [x] handle removing nodes
 - [ ] handle multiple controllers, sharing configuration and handing over between them
-- [ ] provide some way to set scenes up
-- [ ] provide some way to set associations up
-- [ ] provide some way to set buttons up
-- [ ] provide some way to set polling up
+- [x] provide some way to set scenes up
+- [x] provide some way to set associations up
+- [x] provide some way to set buttons up
+- [x] provide some way to set polling up
 - [x] Docker
 - [ ] toggler of binary switches (useful for alerts)
 - [ ] support over 50 zwave things (will need to have multiple connections to aws iot)
 - [ ] Arm docker image (for Raspberry PI support)
-- [ ] Ubuntu Snap to install on ubuntu core
 - [x] Support multiple z-wave networks - handy if you have multiple networks for:
     - Desire to support different frequency ranges maybe EU, US, JP to support different devices
     - Multiple physically distant locations

@@ -249,7 +249,7 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
     update("secureAddNode").then(() => zwave.addNode(true))
 
   if (stateObject.state.healNetwork)
-    update("healNetwork").then(() => zwave.healNetwork())
+    update("healNetwork").then(() => zwave.healNetwork(true))
 
   if (stateObject.state.addNode)
     update("addNode").then(() => zwave.addNode())

@@ -206,6 +206,7 @@ exports.zwave_on_driver_ready = async homeid => {
     state: {
       desired: {
         secureAddNode: 0,
+        healNetworkNode: 0,
         healNetwork: 0,
         addNode: 0,
         cancelControllerCommand: 0,
@@ -215,6 +216,7 @@ exports.zwave_on_driver_ready = async homeid => {
       },
       reported: {
         secureAddNode: 0,
+        healNetworkNode: 0,
         healNetwork: 0,
         addNode: 0,
         cancelControllerCommand: 0,
@@ -235,6 +237,9 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
       thingName: thingName,
       payload: JSON.stringify({ state: { reported: { [key]: stateObject.state[key] } } })
     }).promise())
+
+  if (stateObject.state.healNetworkNode)
+    update("healNetworkNode").then(() => zwave.healNetworkNode(stateObject.state.healNetworkNode, true))
 
   if (stateObject.state.secureAddNode)
     update("secureAddNode").then(() => zwave.addNode(true))

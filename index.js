@@ -212,7 +212,9 @@ exports.zwave_on_driver_ready = async homeid => {
         cancelControllerCommand: 0,
         removeNode: 0,
         softReset: 0,
-        removeFailedNode: 0
+        removeFailedNode: 0,
+        testNetworkNode: 0,
+        testNetwork: 0
       },
       reported: {
         secureAddNode: 0,
@@ -222,7 +224,9 @@ exports.zwave_on_driver_ready = async homeid => {
         cancelControllerCommand: 0,
         removeNode: 0,
         softReset: 0,
-        removeFailedNode: 0
+        removeFailedNode: 0,
+        testNetworkNode: 0,
+        testNetwork: 0
       }
     }
   }))
@@ -261,6 +265,12 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
 
   if (stateObject.state.removeFailedNode)
     update("removeFailedNode").then(() => zwave.removeFailedNode(stateObject.state.removeFailedNode))
+
+  if (stateObject.state.testNetwork)
+    update("testNetwork").then(() => zwave.testNetwork())
+
+  if (stateObject.state.testNetworkNode)
+    update("testNetworkNode").then(() => zwave.testNetworkNode(stateObject.state.testNetworkNode))
 }
 
 s3.getObject().promise()

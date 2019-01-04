@@ -213,6 +213,8 @@ exports.zwave_on_driver_ready = async homeid => {
         removeNode: 0,
         softReset: 0,
         removeFailedNode: 0,
+        switchAllOn: 0,
+        switchAllOff: 0,
         testNetworkNode: 0,
         testNetwork: 0
       },
@@ -225,6 +227,8 @@ exports.zwave_on_driver_ready = async homeid => {
         removeNode: 0,
         softReset: 0,
         removeFailedNode: 0,
+        switchAllOn: 0,
+        switchAllOff: 0,
         testNetworkNode: 0,
         testNetwork: 0
       }
@@ -265,6 +269,12 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
 
   if (stateObject.state.removeFailedNode)
     update("removeFailedNode").then(() => zwave.removeFailedNode(stateObject.state.removeFailedNode))
+
+  if (stateObject.state.switchAllOn)
+    update("switchAllOn").then(() => zwave.switchAllOn())
+
+  if (stateObject.state.switchAllOff)
+    update("switchAllOff").then(() => zwave.switchAllOff())
 
   if (stateObject.state.testNetwork)
     update("testNetwork").then(() => zwave.testNetwork())

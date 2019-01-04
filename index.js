@@ -336,8 +336,13 @@ awsMqttClient.on("offline", () => logger("aws offline"))
 
 net.createServer(socket => {
   socket.write('Welcome to the z-wave cli!\n');
-  socket.on('data', data =>
-    socket.write(JSON.stringify(eval(`zwave.${data.toString()}`)) + "\n" || "ok\n")
-  )
+  socket.on('data', data => {
+    try {
+      socket.write(JSON.stringify(eval(`zwave.${data.toString()}`)) + "\n" || "ok\n")
+    }
+    catch (error) {
+      socket.write("ERR\n")
+    }
+  })
   socket.on('end', () => closeSocket(socket))
 }).listen(8888);

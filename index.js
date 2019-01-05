@@ -341,8 +341,9 @@ net.createServer(socket => {
       socket.write(JSON.stringify(eval(`zwave.${data.toString()}`)) + "\n" || "ok\n")
     }
     catch (error) {
-      socket.write("ERR\n")
+      socket.write(`ERR\n ${JSON.stringify(error)}`)
     }
   })
-  socket.on('end', () => closeSocket(socket))
 }).listen(8888);
+
+setValue({ node_id: 27, class_id: 37, instance: 2, index: 0 }, true)

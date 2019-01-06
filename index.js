@@ -341,6 +341,7 @@ net.createServer(socket => {
       socket.write(JSON.stringify(eval(`zwave.${data.toString()}`)) + "\n" || "ok\n")
     }
     catch (error) {
+      console.log(error)
       socket.write(`ERR\n ${JSON.stringify(error)}`)
     }
   })

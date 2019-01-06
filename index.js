@@ -307,6 +307,8 @@ zwave.on("node naming", exports.zwave_on_node_available)
 zwave.on("node ready", exports.zwave_on_node_available)
 zwave.on("node available", exports.zwave_on_node_available)
 zwave.on("node removed", exports.zwave_on_node_removed)
+zwave.on('node event', (nodeid, data) => console.log("EVENT", nodeid, data))
+
 
 process.on("SIGINT", exports.SIGINT)
 zwave.on("driver failed", exports.SIGINT)
@@ -315,6 +317,8 @@ zwave.on("notification", (nodeId, notification) => logger("notification", nodeId
 
 zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)
+// zwave.on('value refreshed', exports.value_update)
+// zwave.on('value removed', )
 
 zwave.on("node available", () => zwave.writeConfig())
 zwave.on("node removed", () => zwave.writeConfig())
@@ -346,5 +350,3 @@ net.createServer(socket => {
     }
   })
 }).listen(8888);
-
-setValue({ node_id: 27, class_id: 37, instance: 2, index: 0 }, true)

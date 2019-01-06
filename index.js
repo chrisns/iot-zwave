@@ -308,7 +308,9 @@ zwave.on("node ready", exports.zwave_on_node_available)
 zwave.on("node available", exports.zwave_on_node_available)
 zwave.on("node removed", exports.zwave_on_node_removed)
 zwave.on('node event', (nodeid, data) => console.log("EVENT", nodeid, data))
+zwave.on('node notification', (nodeid, notif, help) => console.log("EVENT", nodeid, notif, help))
 
+zwave.on('scene event', (nodeid, data) => console.log("SCENE", nodeid, data))
 
 process.on("SIGINT", exports.SIGINT)
 zwave.on("driver failed", exports.SIGINT)

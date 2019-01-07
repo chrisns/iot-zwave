@@ -307,15 +307,14 @@ zwave.on("node naming", exports.zwave_on_node_available)
 zwave.on("node ready", exports.zwave_on_node_available)
 zwave.on("node available", exports.zwave_on_node_available)
 zwave.on("node removed", exports.zwave_on_node_removed)
-zwave.on('node event', (nodeid, data) => console.log("EVENT", nodeid, data))
-zwave.on('node notification', (nodeid, notif, help) => console.log("EVENT", nodeid, notif, help))
+zwave.on('node event', (nodeid, data) => logger("EVENT:", nodeid, data))
+zwave.on('notification', (nodeid, notif, help) => logger("NOTIFICATION:", nodeid, notif, help))
+zwave.on('controller command', (nodeId, retVal, state, message) => logger("controller command:", nodeId, retVal, state, message))
 
-zwave.on('scene event', (nodeid, data) => console.log("SCENE", nodeid, data))
+zwave.on('scene event', (nodeid, data) => logger("SCENE", nodeid, data))
 
 process.on("SIGINT", exports.SIGINT)
 zwave.on("driver failed", exports.SIGINT)
-
-zwave.on("notification", (nodeId, notification) => logger("notification", nodeId, notification))
 
 zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)

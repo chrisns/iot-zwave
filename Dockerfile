@@ -6,6 +6,7 @@ RUN wget https://github.com/OpenZWave/open-zwave/archive/master.zip
 RUN unzip master.zip
 RUN rm master.zip
 WORKDIR /open-zwave-master
+RUN curl -O -L https://github.com/OpenZWave/open-zwave/pull/1125.patch && patch -p1 < 1125.patch
 RUN make
 RUN make install
 

@@ -2,12 +2,15 @@ version: "3"
 services:
   zwave:
     deploy:
-      update_config:
-        failure_action: rollback
+      mode: global
       placement:
         constraints:
-          - node.labels.zwave2 == true
-      replicas: 1
+          - node.labels.zwave == true
+      update_config:
+        failure_action: rollback
+      restart_policy:
+        condition: any
+        delay: 5s
       resources:
         limits:
           cpus: '1.0'
@@ -15,9 +18,6 @@ services:
         reservations:
           cpus: '1.0'
           memory: 256M
-      restart_policy:
-        condition: any
-        delay: 5s
       labels:
         - zwave-device-binding=true
     image: chrisns/iot-zwave:${DRONE_BUILD_NUMBER}
@@ -34,7 +34,7 @@ services:
     volumes:
       - s3data:/data
 
-  s3vol:
+  s3vol1:
     labels:
       - com.df.cron2=true
       - com.df.distribute=true
@@ -49,6 +49,8 @@ services:
       - AWS_DEFAULT_REGION=${AWS_REGION}
     deploy:
       replicas: 1
+      update_config:
+        failure_action: rollback
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -62,7 +64,39 @@ services:
       placement:
         constraints:
           - node.labels.zwave2 == true
+          - node.hostname == stick1
 
+  s3vol2:
+    labels:
+      - com.df.cron2=true
+      - com.df.distribute=true
+      - com.df.schedule=0 * * * *
+    image: mesosphere/aws-cli
+    command: --debug s3 sync --exclude OZW_Log.txt /data s3://pinkzwave/pink_eu_zwave
+    volumes:
+     - s3data:/data
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          cpus: '0.50'
+          memory: 64M
+      placement:
+        constraints:
+          - node.labels.zwave == true
+          - node.hostname == stick2
 volumes:
   s3data:
     driver: local

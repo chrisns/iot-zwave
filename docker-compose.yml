@@ -1,11 +1,11 @@
 version: "3"
 services:
-  zwave:
+  zwave-uk:
     deploy:
       mode: global
       placement:
         constraints:
-          - node.labels.zwave == true
+          - node.hostname == stick1
       update_config:
         failure_action: rollback
       restart_policy:
@@ -32,9 +32,43 @@ services:
       - DEVICE=/dev/ttyUSB1
       - DEBUG=true
     volumes:
-      - s3data:/data
+      - s3data-uk:/data
 
-  s3vol1:
+  zwave-usa:
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.hostname == stick3
+      update_config:
+        failure_action: rollback
+      restart_policy:
+        condition: any
+        delay: 5s
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '1.0'
+          memory: 256M
+      labels:
+        - zwave-device-binding=true
+    image: chrisns/iot-zwave:${DRONE_BUILD_NUMBER}
+    environment:
+      - AWS_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_IOT_ENDPOINT_HOST
+      - AWS_REGION
+      - ZWAVE_NETWORK_KEY=${ZWAVE_NETWORK_KEY_USA}
+      - BUCKET
+      - BUCKET_KEY=${BUCKET_KEY_USA}
+      - DEVICE=/dev/ttyUSB1
+      - DEBUG=true
+    volumes:
+      - s3data-usa:/data
+
+  s3vol-uk:
     labels:
       - com.df.cron2=true
       - com.df.distribute=true
@@ -42,7 +76,7 @@ services:
     image: mesosphere/aws-cli
     command: --debug s3 sync --exclude OZW_Log.txt /data s3://pinkzwave/pink_eu_zwave
     volumes:
-     - s3data:/data
+     - s3data-uk:/data
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY
@@ -63,10 +97,9 @@ services:
           memory: 64M
       placement:
         constraints:
-          - node.labels.zwave2 == true
           - node.hostname == stick1
 
-  s3vol2:
+  s3vol-usa:
     labels:
       - com.df.cron2=true
       - com.df.distribute=true
@@ -74,7 +107,7 @@ services:
     image: mesosphere/aws-cli
     command: --debug s3 sync --exclude OZW_Log.txt /data s3://pinkzwave/pink_eu_zwave
     volumes:
-     - s3data:/data
+     - s3data-usa:/data
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY
@@ -95,8 +128,9 @@ services:
           memory: 64M
       placement:
         constraints:
-          - node.labels.zwave == true
-          - node.hostname == stick2
+          - node.hostname == stick3
 volumes:
-  s3data:
+  s3data-uk:
+    driver: local
+  s3data-usa:
     driver: local

@@ -11,18 +11,18 @@ RUN make
 RUN make install
 
 WORKDIR /app
-COPY package-lock.json .
-COPY package.json .
+COPY package.json package-lock.json ./
 RUN npm i
 RUN npm audit fix
-COPY . .
 RUN npm prune --production
+COPY index.js ./
 
 FROM node:8-alpine
 RUN apk add --no-cache eudev-dev busybox-extras
 COPY --from=ozw-builder /usr/local /usr/local
 COPY --from=ozw-builder /app /app
 WORKDIR /app
+USER node
 
 
 ENV AWS_ACCESS_KEY=""

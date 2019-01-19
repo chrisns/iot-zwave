@@ -22,7 +22,7 @@ RUN apk add --no-cache eudev-dev busybox-extras
 COPY --from=ozw-builder /usr/local /usr/local
 COPY --from=ozw-builder /app /app
 WORKDIR /app
-USER node
+#USER node
 
 
 ENV AWS_ACCESS_KEY=""

@@ -312,7 +312,7 @@ zwave.on('notification', (nodeid, notif, help) => logger("NOTIFICATION:", nodeid
 zwave.on('controller command', (nodeId, retVal, state, message) => logger("controller command:", nodeId, retVal, state, message))
 
 zwave.on('scene event', (nodeid, data) => logger("SCENE", nodeid, data))
-zwave.on('scene event', (nodeid, sceneid) => awsMqttClient.publish(`$aws/things/zwave_${home_id}_${nodeid}/shadow/update`, JSON.stringify({ state: { reported: { user: { sceneid: sceneid } } } })))
+zwave.on('scene event', (nodeid, sceneid) => awsMqttClient.publish(`$aws/things/zwave_${home_id}_${nodeid}/shadow/update`, JSON.stringify({ state: { reported: { user: { "Scene ID": sceneid } } } })))
 
 process.on("SIGINT", exports.SIGINT)
 zwave.on("driver failed", exports.SIGINT)

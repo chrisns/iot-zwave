@@ -41,7 +41,7 @@ When this has been received and actioned you will be able to see the same thing 
 docker run \ 
     --device=/dev/ttyACM0 \
     -e DEVICE=/dev/ttyACM0 \
-    -e AWS_ACCESS_KEY=XXX \
+    -e AWS_ACCESS_KEY_ID=XXX \
     -e AWS_SECRET_ACCESS_KEY=XX \
     -e AWS_IOT_ENDPOINT_HOST=XX \
     -e AWS_REGION=eu-west-2 \
@@ -55,7 +55,7 @@ git clone git@github.com:chrisns/iot-zwave
 cd iot-zwave
 npm i
 DEVICE=/dev/ttyACM0 \
-AWS_ACCESS_KEY=XXX \
+AWS_ACCESS_KEY_ID=XXX \
 AWS_SECRET_ACCESS_KEY=XX \
 AWS_IOT_ENDPOINT_HOST=XX \
 AWS_REGION=eu-west-2 \

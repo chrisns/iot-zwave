@@ -4,7 +4,7 @@ const AWS = require("aws-sdk")
 const Queue = require("promise-queue")
 const ZWave = require("openzwave-shared")
 const util = require("util")
-const AWSMqtt = require("aws-mqtt-client").default
+var awsIot = require('aws-iot-device-sdk');
 const net = require('net');
 
 const _ = {
@@ -13,7 +13,7 @@ const _ = {
   pickBy: require("lodash.pickby"),
   get: require("lodash.get")
 }
-const { AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_IOT_ENDPOINT_HOST, AWS_REGION, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY, USER_DATA } = process.env
+const { AWS_IOT_ENDPOINT_HOST, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY, USER_DATA } = process.env
 
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
@@ -25,16 +25,10 @@ let home_id
 const logger = (...log) => console.log(...log)
 
 const iot = new AWS.Iot({
-  accessKeyId: AWS_ACCESS_KEY,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  region: AWS_REGION,
   debug: DEBUG
 })
 
 const s3 = new AWS.S3({
-  accessKeyId: AWS_ACCESS_KEY,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  region: AWS_REGION,
   params: {
     Bucket: BUCKET,
     Key: BUCKET_KEY
@@ -48,19 +42,12 @@ const persist_things = () =>
 
 const iotdata = new AWS.IotData({
   endpoint: AWS_IOT_ENDPOINT_HOST,
-  accessKeyId: AWS_ACCESS_KEY,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  region: AWS_REGION,
   debug: DEBUG
 })
 
-
-const awsMqttClient = new AWSMqtt({
-  accessKeyId: AWS_ACCESS_KEY,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  endpointAddress: AWS_IOT_ENDPOINT_HOST,
-  region: AWS_REGION,
-  logger: console
+var awsMqttClient = awsIot.device({
+  host: AWS_IOT_ENDPOINT_HOST,
+  protocol: 'wss'
 })
 
 awsMqttClient.async_publish = util.promisify(awsMqttClient.publish)

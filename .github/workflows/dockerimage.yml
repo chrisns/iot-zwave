@@ -18,8 +18,8 @@ jobs:
 
     - name: Docker login
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         docker_username: ${{ secrets.docker_username }}
         docker_password: ${{ secrets.docker_password }}
       run: |
-        docker login docker.pkg.github.com -u chrisns -p ${GITHUB_TOKEN}
+        docker login  -u $docker_username -p ${docker_password}

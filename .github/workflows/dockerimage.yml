@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build and push the Docker image
-      run: docker build -t ${GITHUB_REPOSITORY}:latest
+      run: docker build -t ${GITHUB_REPOSITORY}:latest .
       
     - name: Docker login
       env:

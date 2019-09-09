@@ -9,17 +9,21 @@ jobs:
  
     steps:
     - uses: actions/checkout@v1
-#     - name: Build and push the Docker image
-#       run: |
-#         docker build -t ${GITHUB_REPOSITORY}:latest
-        
-#         docker build . --file Dockerfile --tag docker.pkg.github.com/chrisns/iot-zwave:${GITHUB_SHA}
-#         docker push docker.pkg.github.com/chrisns/iot-zwave:${GITHUB_SHA}
-
+    - name: Build and push the Docker image
+      run: docker build -t ${GITHUB_REPOSITORY}:latest
+      
     - name: Docker login
       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         docker_username: ${{ secrets.docker_username }}
         docker_password: ${{ secrets.docker_password }}
-      run: |
-        docker login  -u $docker_username -p ${docker_password}
+      run: docker login  -u $docker_username -p ${docker_password}
+
+    - name: Docker tag
+      run: docker tag ${GITHUB_REPOSITORY}:latest ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+
+    - name: Docker push latest
+      if: github.ref == 'master'
+      run: docker push ${GITHUB_REPOSITORY}:latest
+
+    - name: Docker push sha
+      run: docker push ${GITHUB_REPOSITORY}:${GITHUB_SHA}

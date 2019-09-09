@@ -9,7 +9,7 @@ jobs:
  
     steps:
     - uses: actions/checkout@v1
-    - name: Build and push the Docker image
+    - name: Build
       run: docker build -t ${GITHUB_REPOSITORY}:latest .
       
     - name: Docker login
@@ -18,12 +18,12 @@ jobs:
         docker_password: ${{ secrets.docker_password }}
       run: docker login  -u $docker_username -p ${docker_password}
 
-    - name: Docker tag
+    - name: Tag
       run: docker tag ${GITHUB_REPOSITORY}:latest ${GITHUB_REPOSITORY}:${GITHUB_SHA}
 
-    - name: Docker push latest
+    - name: Push latest
       if: github.ref == 'master'
       run: docker push ${GITHUB_REPOSITORY}:latest
 
-    - name: Docker push sha
+    - name: Push sha
       run: docker push ${GITHUB_REPOSITORY}:${GITHUB_SHA}

@@ -191,20 +191,7 @@ exports.zwave_on_driver_ready = async homeid => {
   }
   await awsMqttClient.async_publish(`$aws/things/${params.thingName}/shadow/update`, JSON.stringify({
     state: {
-      desired: {
-        secureAddNode: 0,
-        healNetworkNode: 0,
-        healNetwork: 0,
-        addNode: 0,
-        cancelControllerCommand: 0,
-        removeNode: 0,
-        softReset: 0,
-        removeFailedNode: 0,
-        switchAllOn: 0,
-        switchAllOff: 0,
-        testNetworkNode: 0,
-        testNetwork: 0
-      },
+      desired: null,
       reported: {
         secureAddNode: 0,
         healNetworkNode: 0,
@@ -217,7 +204,8 @@ exports.zwave_on_driver_ready = async homeid => {
         switchAllOn: 0,
         switchAllOff: 0,
         testNetworkNode: 0,
-        testNetwork: 0
+        testNetwork: 0,
+        ready: false
       }
     }
   }))
@@ -288,6 +276,8 @@ zwave.on("value added", (nodeid, comclass, value) => logger("value added", nodei
 zwave.on("driver ready", homeid => logger("scanning homeid=0x%s...", homeid.toString(16)))
 zwave.on("scan complete", () => logger("====> scan complete."))
 
+zwave.on("scan complete", () => awsMqttClient.publish(`$aws/things/zwave_${home_id}`, JSON.stringify({ state: { reported: { ready: true } } })))
+
 zwave.on("driver ready", exports.zwave_on_driver_ready)
 
 zwave.on("node naming", exports.zwave_on_node_available)
@@ -306,8 +296,6 @@ zwave.on("driver failed", exports.SIGINT)
 
 zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)
-// zwave.on('value refreshed', exports.value_update)
-// zwave.on('value removed', )
 
 awsMqttClient.on("message", (topic, message) => {
   let thing_name = topic.split("/")[2]

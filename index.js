@@ -64,7 +64,7 @@ const zwave = new ZWave({
 exports.value_update = (nodeid, comclass, value) =>
   exports.update_thing(
     value.node_id,
-    _.set({}, `${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value || 0))
+    _.set({}, `${value.genre}.${value.label}`, value.value || 0))
 
 exports.update_thing = async (thing_id, update) => {
   let payload = { state: { reported: update } }
@@ -110,7 +110,7 @@ exports.setValue = async (thing_id, genre, label, value, again = false) =>
   zwave.setValue(...things[thing_id][genre][label].split("-"), value)
 
 exports.zwave_on_value_added = (nodeid, comclass, value) => {
-  _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value_id)
+  _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}`, value.value_id)
   s3queue.add(() => persist_things())
 }
 

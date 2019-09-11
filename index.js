@@ -4,8 +4,8 @@ const AWS = require("aws-sdk")
 const Queue = require("promise-queue")
 const ZWave = require("openzwave-shared")
 const util = require("util")
-var awsIot = require('aws-iot-device-sdk');
-const net = require('net');
+const awsIot = require('aws-iot-device-sdk')
+const net = require('net')
 
 const _ = {
   set: require("lodash.set"),
@@ -296,7 +296,7 @@ awsMqttClient.on("close", () => logger("aws connection close"))
 awsMqttClient.on("offline", () => logger("aws offline"))
 
 net.createServer(socket => {
-  socket.write('Welcome to the z-wave cli!\n');
+  socket.write('Welcome to the z-wave cli!\n')
   socket.on('data', data => {
     try {
       socket.write(JSON.stringify(eval(`zwave.${data.toString()}`)) + "\n" || "ok\n")
@@ -306,4 +306,4 @@ net.createServer(socket => {
       socket.write(`ERR\n ${JSON.stringify(error)}`)
     }
   })
-}).listen(8888);
+}).listen(8888)

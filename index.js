@@ -69,23 +69,6 @@ exports.value_update = (nodeid, comclass, value) =>
 
 exports.update_thing = async (thing_id, update) => {
   let payload = { state: { reported: update } }
-  let shadow = { payload: "{}" }
-  try {
-    shadow = await iotdata.getThingShadow({ thingName: `zwave_${home_id}_${thing_id}` }).promise()
-  }
-  catch (error) {
-    console.error("caught error", error)
-  }
-  Object.entries(update).forEach(([genre, paramset]) =>
-    Object.entries(paramset).forEach(([param, value]) => {
-      let path = `state.desired[${genre}][${param}]`
-      let existing = _.get(JSON.parse(shadow.payload), path)
-      if (existing && existing === value) {
-        _.set(payload, path, null)
-      }
-    }
-    )
-  )
   await queue.add(async () => {
     try {
       await iotdata.updateThingShadow({

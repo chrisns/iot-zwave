@@ -185,7 +185,6 @@ exports.zwave_on_driver_ready = async homeid => {
         switchAllOff: 0,
         testNetworkNode: 0,
         testNetwork: 0,
-        ready: false
       }
     }
   }))
@@ -256,9 +255,18 @@ zwave.on("value added", (nodeid, comclass, value) => logger("value added", nodei
 zwave.on("driver ready", homeid => logger("scanning homeid=0x%s...", homeid.toString(16)))
 zwave.on("scan complete", () => logger("====> scan complete."))
 
-zwave.on("scan complete", () => awsMqttClient.publish(`$aws/things/zwave_${home_id}`, JSON.stringify({ state: { reported: { ready: true } } })))
+zwave.on("scan complete", () => awsMqttClient.async_publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: true } } })))
 
 zwave.on("driver ready", exports.zwave_on_driver_ready)
+
+zwave.on("driver ready", () => awsIot.device({
+  host: AWS_IOT_ENDPOINT_HOST,
+  protocol: 'wss',
+  will: {
+    topic: `aws/things/zwave_${home_id}/shadow/update`,
+    payload: JSON.stringify({ state: { reported: { ready: false } } })
+  }
+})) // setup a last will to mark the device not ready when the whole process isn't running
 
 zwave.on("node naming", exports.zwave_on_node_available)
 zwave.on("node ready", exports.zwave_on_node_available)
@@ -291,6 +299,10 @@ awsMqttClient.on("message", (topic, message) => {
 
 awsMqttClient.on("connect", () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))
 awsMqttClient.on("connect", () => logger("aws connected"))
+
+// balance the last will by publishing the current ready status
+awsMqttClient.on("connect", () => awsMqttClient.async_publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: home_id !== undefined } } })))
+
 awsMqttClient.on("error", (error) => logger("aws", error))
 awsMqttClient.on("close", () => logger("aws connection close"))
 awsMqttClient.on("offline", () => logger("aws offline"))

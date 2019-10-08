@@ -13,6 +13,7 @@ jobs:
         run: docker build -t ${GITHUB_REPOSITORY}:latest .
 
       - name: Docker login
+        if: github.ref == 'refs/heads/master'
         env:
           docker_username: ${{ secrets.docker_username }}
           docker_password: ${{ secrets.docker_password }}

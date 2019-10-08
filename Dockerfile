@@ -2,18 +2,15 @@ FROM node:alpine as ozw-builder
 RUN apk --no-cache add eudev-dev coreutils
 RUN apk --no-cache add linux-headers alpine-sdk python openssl libmicrohttpd-dev
 
-RUN wget https://github.com/OpenZWave/open-zwave/archive/master.zip
-RUN unzip master.zip
-RUN rm master.zip
-WORKDIR /open-zwave-master/cpp/build
+COPY open-zwave /open-zwave
+WORKDIR /open-zwave/cpp/build
 RUN make
 RUN make install
 
 WORKDIR /app
 COPY package.json ./
-RUN npm i
+RUN npm i --production
 RUN npm audit fix
-RUN npm prune --production
 COPY index.js ./
 
 FROM node:alpine

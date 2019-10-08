@@ -141,6 +141,15 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
   await subscribe_to_thing(params.thingName)
 }
 
+exports.zwave_get_associations = async nodeid => {
+  let thingName = `zwave_${home_id}_${nodeid}`
+  let associations = {}
+  for (groupid = 1; groupid <= zwave.getNumGroups(nodeid); groupid++) {
+    associations[zwave.getGroupLabel(nodeid, groupid)] = zwave.getAssociationsInstances(nodeid, groupid)
+  }
+  return await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({ state: { reported: { associations: associations } } }))
+}
+
 const subscriptions = []
 
 const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/delta`) => {
@@ -271,6 +280,7 @@ zwave.on("driver ready", () => awsIot.device({
 zwave.on("node naming", exports.zwave_on_node_available)
 zwave.on("node ready", exports.zwave_on_node_available)
 zwave.on("node available", exports.zwave_on_node_available)
+zwave.on("node available", exports.zwave_get_associations)
 zwave.on("node removed", exports.zwave_on_node_removed)
 zwave.on('node event', (nodeid, data) => logger("EVENT:", nodeid, data))
 zwave.on('notification', (nodeid, notif, help) => logger("NOTIFICATION:", nodeid, notif, help))

@@ -4,3 +4,4 @@ LICENSE
 Dockerfile
 .gitignore
 .drone.yml
+.git

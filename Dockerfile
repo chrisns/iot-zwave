@@ -1,6 +1,5 @@
 FROM node:alpine as ozw-builder
-RUN apk --no-cache add eudev-dev coreutils
-RUN apk --no-cache add linux-headers alpine-sdk python openssl libmicrohttpd-dev
+RUN apk --no-cache add eudev-dev coreutils linux-headers alpine-sdk python openssl
 
 COPY open-zwave /open-zwave
 WORKDIR /open-zwave/cpp/build

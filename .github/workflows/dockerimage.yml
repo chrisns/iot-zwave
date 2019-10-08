@@ -2,27 +2,28 @@ name: Docker Image CI
 on: [push]
 
 jobs:
-
   build:
- 
     runs-on: ubuntu-latest
- 
+
     steps:
-    - uses: actions/checkout@v1
-    - name: Build
-      run: docker build -t ${GITHUB_REPOSITORY}:latest .
-      
-    - name: Docker login
-      env:
-        docker_username: ${{ secrets.docker_username }}
-        docker_password: ${{ secrets.docker_password }}
-      run: docker login  -u $docker_username -p ${docker_password}
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+          fetch-depth: 1
+      - name: Build
+        run: docker build -t ${GITHUB_REPOSITORY}:latest .
 
-    - name: Tag
-      run: docker tag ${GITHUB_REPOSITORY}:latest ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+      - name: Docker login
+        env:
+          docker_username: ${{ secrets.docker_username }}
+          docker_password: ${{ secrets.docker_password }}
+        run: docker login  -u $docker_username -p ${docker_password}
 
-    - name: Push latest
-      run: docker push ${GITHUB_REPOSITORY}:latest
+      - name: Tag
+        run: docker tag ${GITHUB_REPOSITORY}:latest ${GITHUB_REPOSITORY}:${GITHUB_SHA}
 
-    - name: Push sha
-      run: docker push ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+      - name: Push latest
+        run: docker push ${GITHUB_REPOSITORY}:latest
+
+      - name: Push sha
+        run: docker push ${GITHUB_REPOSITORY}:${GITHUB_SHA}

@@ -11,7 +11,7 @@ jobs:
           submodules: true
 
       - name: Use a cache
-        run: docker pull ${GITHUB_REPOSITORY}:latest .
+        run: docker pull ${GITHUB_REPOSITORY}:latest
 
       - name: Build
         run: docker build -t ${GITHUB_REPOSITORY}:latest .

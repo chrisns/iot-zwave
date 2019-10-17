@@ -144,7 +144,7 @@ exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
 exports.zwave_get_associations = async nodeid => {
   let thingName = `zwave_${home_id}_${nodeid}`
   let associations = {}
-  for (groupid = 1; groupid <= zwave.getNumGroups(nodeid); groupid++) {
+  for (let groupid = 1; groupid <= zwave.getNumGroups(nodeid); groupid++) {
     associations[zwave.getGroupLabel(nodeid, groupid)] = zwave.getAssociationsInstances(nodeid, groupid)
   }
   return await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({ state: { reported: { associations: associations } } }))

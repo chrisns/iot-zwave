@@ -152,7 +152,7 @@ exports.zwave_get_associations = async nodeid => {
 
 const subscriptions = []
 
-const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/delta`) => {
+const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/accepted`) => {
   if (subscriptions.includes(topic)) return
   subscriptions.push(topic)
   logger("subscribing to topic", topic)

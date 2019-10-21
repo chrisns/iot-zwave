@@ -99,8 +99,8 @@ exports.zwave_on_value_added = (nodeid, comclass, value) => {
 }
 
 exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
-  if (thingName === `zwave_${home_id}`) return
-  Object.entries(stateObject.state).forEach(([genre, values]) =>
+  if (thingName === `zwave_${home_id}` || !stateObject.state || !stateObject.state.desired) return
+  Object.entries(stateObject.state.desired).forEach(([genre, values]) =>
     Object.entries(values).forEach(([label, value]) =>
       exports.silent_try(() => exports.setValue(thingName, genre, label, value)) //@TODO silent catching is really not the answer
     )

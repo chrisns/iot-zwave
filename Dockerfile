@@ -7,16 +7,15 @@ RUN make
 RUN make install
 
 WORKDIR /app
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN npm i --production
-RUN npm audit fix
-COPY index.js ./
 
 FROM node:alpine
 RUN apk add --no-cache eudev-dev busybox-extras
 COPY --from=ozw-builder /usr/local /usr/local
 COPY --from=ozw-builder /app /app
 WORKDIR /app
+COPY index.js ./
 #USER node
 
 

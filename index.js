@@ -291,17 +291,17 @@ zwave.on("value added", exports.value_update)
 zwave.on("value changed", exports.value_update)
 
 awsMqttClient.on("message", (topic, message) => {
-  let thing_name = topic.split("/")[2]
   let payload = JSON.parse(message.toString())
-  logger(payload)
+  if (payload.state && payload.state.desired)
+    return
+  let thing_name = topic.split("/")[2]
+  logger("RECEIVED", message)
   exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
-  if (payload.state && payload.state.desired) {
-    iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
-      thingName: thing_name,
-      payload: JSON.stringify({ state: { desired: null } })
-    }).promise()
-  }
+  iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
+    thingName: thing_name,
+    payload: JSON.stringify({ state: { desired: null } })
+  }).promise()
 })
 
 awsMqttClient.on("connect", () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))

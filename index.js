@@ -99,7 +99,7 @@ exports.zwave_on_value_added = (nodeid, comclass, value) => {
 }
 
 exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
-  if (thingName === `zwave_${home_id}` || !stateObject.state || !stateObject.state.desired) return
+  if (thingName === `zwave_${home_id}`) return
   Object.entries(stateObject.state.desired).forEach(([genre, values]) =>
     Object.entries(values).forEach(([label, value]) =>
       exports.silent_try(() => exports.setValue(thingName, genre, label, value)) //@TODO silent catching is really not the answer
@@ -292,8 +292,7 @@ zwave.on("value changed", exports.value_update)
 
 awsMqttClient.on("message", (topic, message) => {
   let payload = JSON.parse(message.toString())
-  if (!payload.state || !payload.state.desired)
-    return
+  if (!payload.state || !payload.state.desired) return
   let thing_name = topic.split("/")[2]
   logger("RECEIVED", message.toString())
   exports.thingShadow_on_delta_hub(thing_name, payload)

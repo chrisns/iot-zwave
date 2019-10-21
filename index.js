@@ -296,10 +296,12 @@ awsMqttClient.on("message", (topic, message) => {
   logger(payload)
   exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
-  iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
-    thingName: thing_name,
-    payload: JSON.stringify({ state: { desired: null } })
-  }).promise()
+  if (stateObject.state && stateObject.state.desired) {
+    iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
+      thingName: thing_name,
+      payload: JSON.stringify({ state: { desired: null } })
+    }).promise()
+  }
 })
 
 awsMqttClient.on("connect", () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))

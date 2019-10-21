@@ -296,7 +296,7 @@ awsMqttClient.on("message", (topic, message) => {
   logger(payload)
   exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
-  if (stateObject.state && stateObject.state.desired) {
+  if (payload.state && payload.state.desired) {
     iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
       thingName: thing_name,
       payload: JSON.stringify({ state: { desired: null } })

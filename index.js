@@ -158,8 +158,6 @@ const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/s
   logger("subscribing to topic", topic)
   try {
     await awsMqttClient.async_subscribe(topic, { qos: 1 })
-    await awsMqttClient.async_publish(`$aws/things/${thingName}/shadow/update`, JSON.stringify({ state: { desired: { ignore_me: null } } }))
-
   }
   catch (error) {
     logger(error)

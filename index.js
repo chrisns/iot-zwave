@@ -292,10 +292,10 @@ zwave.on("value changed", exports.value_update)
 
 awsMqttClient.on("message", (topic, message) => {
   let payload = JSON.parse(message.toString())
-  if (payload.state && payload.state.desired)
+  if (!payload.state || !payload.state.desired)
     return
   let thing_name = topic.split("/")[2]
-  logger("RECEIVED", message)
+  logger("RECEIVED", message.toString())
   exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
   iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it

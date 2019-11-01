@@ -13,6 +13,8 @@ const _ = {
   pickBy: require("lodash.pickby"),
   get: require("lodash.get")
 }
+const logger = (...log) => console.log(...log)
+
 const { AWS_IOT_ENDPOINT_HOST, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, USER_DATA } = process.env
 
 const queue = new Queue(1, Infinity)
@@ -31,7 +33,6 @@ catch (error) {
 
 let home_id
 
-const logger = (...log) => console.log(...log)
 
 const iot = new AWS.Iot({
   debug: DEBUG

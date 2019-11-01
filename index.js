@@ -13,12 +13,21 @@ const _ = {
   pickBy: require("lodash.pickby"),
   get: require("lodash.get")
 }
-const { AWS_IOT_ENDPOINT_HOST, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, BUCKET, BUCKET_KEY, USER_DATA } = process.env
+const { AWS_IOT_ENDPOINT_HOST, ZWAVE_NETWORK_KEY, DEBUG, DEVICE, USER_DATA } = process.env
 
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
-
 let things = {}
+
+try {
+  things = fs.readFileSync(`${USER_DATA}/things.json`)
+  logger("restored these things", things)
+}
+catch (error) {
+  things = {}
+  console.error("unable to read things file", error)
+}
+
 
 let home_id
 
@@ -28,17 +37,12 @@ const iot = new AWS.Iot({
   debug: DEBUG
 })
 
-const s3 = new AWS.S3({
-  params: {
-    Bucket: BUCKET,
-    Key: BUCKET_KEY
-  }
-})
-
-const persist_things = () =>
+const persist_things = () => {
+  fs.writeFileSync(`${USER_DATA}/things.json`, JSON.stringify(things))
   s3.putObject({
     Body: JSON.stringify((things))
   }).promise()
+}
 
 const iotdata = new AWS.IotData({
   endpoint: AWS_IOT_ENDPOINT_HOST,
@@ -244,18 +248,8 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
     update("testNetworkNode").then(() => zwave.testNetworkNode(stateObject.state.testNetworkNode))
 }
 
-s3.getObject().promise()
-  .then(response => response.Body)
-  .then(JSON.parse)
-  .catch((error) => {
-    logger(error)
-    return {}
-  })
-  .then(persisted_things => {
-    things = persisted_things
-    logger("restored these things", things)
-  })
-  .then(() => zwave.connect(DEVICE))
+
+zwave.connect(DEVICE)
 
 zwave.on("value added", exports.zwave_on_value_added)
 zwave.on("value added", (nodeid, comclass, value) => logger("value added", nodeid, comclass, value))

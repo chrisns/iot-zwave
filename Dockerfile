@@ -1,4 +1,4 @@
-FROM node:12-alpine as ozw-builder
+FROM node:13-alpine as ozw-builder
 RUN apk --no-cache add eudev-dev coreutils linux-headers alpine-sdk python openssl
 
 COPY open-zwave /open-zwave

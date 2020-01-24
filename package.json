@@ -12,7 +12,7 @@
   "license": "MIT",
   "repository": "https://github.com/chrisns/iot-zwave",
   "dependencies": {
-    "aws-iot-device-sdk": "^2.2.1",
+    "aws-iot-device-sdk": "^2.2.3",
     "aws-sdk": "^2.609.0",
     "lodash.get": "^4.4.2",
     "lodash.mapvalues": "^4.6.0",

@@ -11,7 +11,7 @@ COPY . .
 RUN npm i --production
 WORKDIR /app/zwave2mqtt
 RUN npm i --production
-RUN git apply ../monkey-patch.patch
+RUN patch lib/ZwaveClient.js< ../monkey-patch.patch
 
 
 

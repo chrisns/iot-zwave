@@ -1,4 +1,5 @@
 node_modules
+zwave2mqtt/node_modules
 *.md
 LICENSE
 Dockerfile

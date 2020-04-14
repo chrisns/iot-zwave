@@ -7,32 +7,27 @@ RUN make
 RUN make install
 
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY . .
 RUN npm i --production
+WORKDIR /app/zwave2mqtt
+RUN npm i --production
+RUN git apply ../monkey-patch.patch
+
+
 
 FROM node:alpine
 RUN apk add --no-cache eudev-dev busybox-extras
 COPY --from=ozw-builder /usr/local /usr/local
 COPY --from=ozw-builder /app /app
-WORKDIR /app
-COPY index.js ./
-#USER node
-
+WORKDIR /app/zwave2mqtt
 
 ENV AWS_ACCESS_KEY="" \
     AWS_SECRET_ACCESS_KEY="" \
     AWS_IOT_ENDPOINT_HOST="" \
     AWS_REGION="" \
-    ZWAVE_NETWORK_KEY="" \
     BUCKET="" \
     BUCKET_KEY="" \
-    DEVICE=/dev/ttyUSB1 \
     DEBUG=false \
-    USER_DATA=/data
+    DEVICE=/dev/ttyUSB1
 
-CMD \
-  while [ ! -c ${DEVICE} ]; do \
-    sleep 1; \
-    echo "waiting for ${DEVICE}"; \
-    done; \
-  npm start
+CMD npm start

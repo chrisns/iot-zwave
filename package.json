@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "nyc mocha",
-    "lint": "eslint index.js"
+    "lint": "eslint boot_iot.js"
   },
   "author": "Chris Nesbitt-Smith",
   "license": "MIT",
@@ -19,22 +19,14 @@
     "lodash.matches": "^4.6.0",
     "lodash.pickby": "^4.6.0",
     "lodash.set": "^4.3.2",
-    "openzwave-shared": "github:OpenZWave/node-openzwave-shared",
     "promise-queue": "^2.2.3"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
     "eslint": "^6.8.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "istanbul": "^1.1.0-alpha.1",
-    "mocha": "^7.1.1",
-    "nyc": "^15.0.1",
-    "rewire": "^5.0.0",
-    "sinon": "^9.0.2",
-    "sinon-chai": "^3.5.0"
+    "eslint-plugin-standard": "^4.0.0"
   }
 }

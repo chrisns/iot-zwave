@@ -1,8 +1,21 @@
 diff --git a/lib/ZwaveClient.js b/lib/ZwaveClient.js
-index d935d9d..b097954 100644
+index d935d9d..735abc1 100644
 --- a/lib/ZwaveClient.js
 +++ b/lib/ZwaveClient.js
-@@ -156,6 +156,7 @@ async function init (cfg, socket) {
+@@ -132,9 +132,12 @@ async function init (cfg, socket) {
+     UserPath: storeDir, // where to store config files
+     DriverMaxAttempts: 9999,
+     SaveConfiguration: Boolean(cfg.saveConfig),
++    IncludeInstanceLabel: false,
++    SaveLogLevel: 0,
+     //  RetryTimeout: 10000,
+     //  IntervalBetweenPolls: true,
+     PollInterval: cfg.pollInterval,
++    RefreshAllUserCodes: false,
+     AutoUpdateConfigFile: Boolean(cfg.autoUpdateConfig)
+     // SuppressValueRefresh: true,
+   }
+@@ -156,6 +159,7 @@ async function init (cfg, socket) {
      this.client.updateOptions(options)
    } else {
      this.client = CLIENT = new OpenZWave(options)
@@ -10,3 +23,4 @@ index d935d9d..b097954 100644
    }
  
    this.nodes = []
+  

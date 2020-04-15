@@ -198,7 +198,6 @@ s3.getObject().promise()
     things = persisted_things
     logger("restored these things", things)
   })
-  .then(() => zwave.connect(DEVICE))
 
 
 

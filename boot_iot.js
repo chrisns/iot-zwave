@@ -3,7 +3,7 @@ const Queue = require("promise-queue")
 const util = require("util")
 const awsIot = require('aws-iot-device-sdk')
 const net = require('net')
-const logger = require('./foo/Zwave2Mqtt/lib/debug')('iot')
+const logger = require('./zwave2mqtt/lib/debug')('iot')
 
 logger.color = 4
 

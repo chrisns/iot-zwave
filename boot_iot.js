@@ -164,8 +164,6 @@ s3.getObject().promise()
     logger("restored these things", things)
   })
 
-
-
 awsMqttClient.on("message", (topic, message) => {
   let payload = JSON.parse(message.toString())
   if (!payload.state || !payload.state.desired) return
@@ -201,7 +199,6 @@ net.createServer(socket => {
   })
 }).listen(8888)
 
-
 module.exports = zw => {
   zwave = zw
   zwave.on("value added", exports.zwave_on_value_added)
@@ -226,7 +223,5 @@ module.exports = zw => {
 
   zwave.on("value added", exports.value_update)
   zwave.on("value changed", exports.value_update)
-
-
 
 }

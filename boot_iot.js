@@ -127,7 +127,7 @@ const zwave_on_node_available = async (nodeid, nodeinfo) => {
   await subscribe_to_thing(params.thingName)
 }
 
-const subscriptions = []
+var subscriptions = []
 
 const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/accepted`) => {
   if (subscriptions.includes(topic)) return

@@ -150,16 +150,6 @@ exports.zwave_on_driver_ready = async homeid => {
     logger(`couldn't update ${params.thingName} trying to create it`)
     await iot.createThing(params).promise()
   }
-  await awsMqttClient.async_publish(`$aws/things/${params.thingName}/shadow/update`, JSON.stringify({
-    state: {
-      desired: null,
-      reported: {
-        switchAllOn: 0,
-        switchAllOff: 0,
-      }
-    }
-  }))
-  await subscribe_to_thing(params.thingName)
 }
 
 exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
@@ -170,12 +160,6 @@ exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
       thingName: thingName,
       payload: JSON.stringify({ state: { reported: { [key]: stateObject.state[key] } } })
     }).promise())
-
-  if (stateObject.state.switchAllOn)
-    update("switchAllOn").then(() => zwave.switchAllOn())
-
-  if (stateObject.state.switchAllOff)
-    update("switchAllOff").then(() => zwave.switchAllOff())
 }
 
 s3.getObject().promise()

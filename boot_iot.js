@@ -52,12 +52,12 @@ awsMqttClient.async_publish = util.promisify(awsMqttClient.publish)
 awsMqttClient.async_subscribe = util.promisify(awsMqttClient.subscribe)
 awsMqttClient.async_unsubscribe = util.promisify(awsMqttClient.unsubscribe)
 
-exports.value_update = (nodeid, comclass, value) =>
-  exports.update_thing(
+const value_update = (nodeid, comclass, value) =>
+  update_thing(
     value.node_id,
     _.set({}, `${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value || 0))
 
-exports.update_thing = async (thing_id, update) => {
+const update_thing = async (thing_id, update) => {
   let payload = { state: { reported: update } }
   await queue.add(async () => {
     try {
@@ -80,24 +80,24 @@ exports.update_thing = async (thing_id, update) => {
   })
 }
 
-exports.setValue = async (thing_id, genre, label, value, again = false) =>
+const setValue = async (thing_id, genre, label, value, again = false) =>
   zwave.setValue(...things[thing_id][genre][label].split("-"), value)
 
-exports.zwave_on_value_added = (nodeid, comclass, value) => {
+const zwave_on_value_added = (nodeid, comclass, value) => {
   _.set(things, `zwave_${home_id}_${nodeid}.${value.genre}.${value.label}${value.instance > 1 ? "-" + (value.instance - 1) : ""}`, value.value_id)
   s3queue.add(() => persist_things())
 }
 
-exports.thingShadows_on_delta_thing = (thingName, stateObject) => {
+const thingShadows_on_delta_thing = (thingName, stateObject) => {
   if (thingName === `zwave_${home_id}`) return
   Object.entries(stateObject.state.desired).forEach(([genre, values]) =>
     Object.entries(values).forEach(([label, value]) =>
-      exports.silent_try(() => exports.setValue(thingName, genre, label, value)) //@TODO silent catching is really not the answer
+      silent_try(() => setValue(thingName, genre, label, value)) //@TODO silent catching is really not the answer
     )
   )
 }
 
-exports.silent_try = func => {
+const silent_try = func => {
   try {
     func()
   } catch (error) {
@@ -105,12 +105,12 @@ exports.silent_try = func => {
   }
 }
 
-exports.zwave_on_node_removed = async nodeid => {
+const zwave_on_node_removed = async nodeid => {
   await unsubscribe_to_thing(`zwave_${home_id}_${nodeid}`)
   return iot.deleteThing({ thingName: `zwave_${home_id}_${nodeid}` })
 }
 
-exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
+const zwave_on_node_available = async (nodeid, nodeinfo) => {
   let params = {
     thingName: `zwave_${home_id}_${nodeid}`,
     thingTypeName: "zwave",
@@ -153,7 +153,7 @@ const unsubscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}
   }
 }
 
-exports.zwave_on_driver_ready = async homeid => {
+const zwave_on_driver_ready = async homeid => {
   home_id = homeid.toString(16)
   let params = {
     thingName: `zwave_${home_id}`
@@ -184,7 +184,7 @@ awsMqttClient.on("message", (topic, message) => {
   if (!payload.state || !payload.state.desired) return
   let thing_name = topic.split("/")[2]
   logger("RECEIVED", message.toString())
-  exports.thingShadows_on_delta_thing(thing_name, payload)
+  thingShadows_on_delta_thing(thing_name, payload)
   iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
     thingName: thing_name,
     payload: JSON.stringify({ state: { desired: null } })
@@ -216,11 +216,11 @@ net.createServer(socket => {
 
 module.exports = zw => {
   zwave = zw
-  zwave.on("value added", exports.zwave_on_value_added)
+  zwave.on("value added", zwave_on_value_added)
 
   zwave.on("scan complete", () => awsMqttClient.async_publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: true } } })))
 
-  zwave.on("driver ready", exports.zwave_on_driver_ready)
+  zwave.on("driver ready", zwave_on_driver_ready)
 
   zwave.on("driver ready", () => awsIot.device({
     host: AWS_IOT_ENDPOINT_HOST,
@@ -231,11 +231,11 @@ module.exports = zw => {
     }
   })) // setup a last will to mark the device not ready when the whole process isn't running
 
-  zwave.on("node ready", exports.zwave_on_node_available)
-  zwave.on("node available", exports.zwave_on_node_available)
-  zwave.on("node removed", exports.zwave_on_node_removed)
+  zwave.on("node ready", zwave_on_node_available)
+  zwave.on("node available", zwave_on_node_available)
+  zwave.on("node removed", zwave_on_node_removed)
 
-  zwave.on("value added", exports.value_update)
-  zwave.on("value changed", exports.value_update)
+  zwave.on("value added", value_update)
+  zwave.on("value changed", value_update)
 
 }

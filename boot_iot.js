@@ -50,6 +50,7 @@ var awsMqttClient = awsIot.device({
 
 awsMqttClient.async_publish = util.promisify(awsMqttClient.publish)
 awsMqttClient.async_subscribe = util.promisify(awsMqttClient.subscribe)
+awsMqttClient.async_unsubscribe = util.promisify(awsMqttClient.unsubscribe)
 
 exports.value_update = (nodeid, comclass, value) =>
   exports.update_thing(
@@ -104,8 +105,10 @@ exports.silent_try = func => {
   }
 }
 
-exports.zwave_on_node_removed = nodeid =>
-  iot.deleteThing({ thingName: `zwave_${home_id}_${nodeid}` })
+exports.zwave_on_node_removed = async nodeid => {
+  await unsubscribe_to_thing(`zwave_${home_id}_${nodeid}`)
+  return iot.deleteThing({ thingName: `zwave_${home_id}_${nodeid}` })
+}
 
 exports.zwave_on_node_available = async (nodeid, nodeinfo) => {
   let params = {
@@ -132,6 +135,18 @@ const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/s
   logger("subscribing to topic", topic)
   try {
     await awsMqttClient.async_subscribe(topic, { qos: 1 })
+  }
+  catch (error) {
+    logger(error)
+  }
+}
+
+const unsubscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/accepted`) => {
+  if (!subscriptions.includes(topic)) return
+  subscriptions = subscriptions.filter(t => t !== topic)
+  logger("unsubscribing to topic", topic)
+  try {
+    await awsMqttClient.async_unsubscribe(topic, { qos: 1 })
   }
   catch (error) {
     logger(error)

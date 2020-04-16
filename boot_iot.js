@@ -216,7 +216,6 @@ module.exports = zw => {
     }
   })) // setup a last will to mark the device not ready when the whole process isn't running
 
-  zwave.on("node naming", exports.zwave_on_node_available)
   zwave.on("node ready", exports.zwave_on_node_available)
   zwave.on("node available", exports.zwave_on_node_available)
   zwave.on("node removed", exports.zwave_on_node_removed)

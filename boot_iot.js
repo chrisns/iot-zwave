@@ -14,7 +14,7 @@ const _ = {
   get: require("lodash.get")
 }
 
-const { AWS_IOT_ENDPOINT_HOST, DEBUG, DEVICE, BUCKET, BUCKET_KEY } = process.env
+const { AWS_IOT_ENDPOINT_HOST, DEBUG, BUCKET, BUCKET_KEY } = process.env
 
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
@@ -152,16 +152,6 @@ exports.zwave_on_driver_ready = async homeid => {
   }
 }
 
-exports.thingShadow_on_delta_hub = (thingName, stateObject) => {
-  if (thingName !== `zwave_${home_id}`) return
-
-  const update = key => queue.add(() =>
-    iotdata.updateThingShadow({
-      thingName: thingName,
-      payload: JSON.stringify({ state: { reported: { [key]: stateObject.state[key] } } })
-    }).promise())
-}
-
 s3.getObject().promise()
   .then(response => response.Body)
   .then(JSON.parse)
@@ -181,7 +171,6 @@ awsMqttClient.on("message", (topic, message) => {
   if (!payload.state || !payload.state.desired) return
   let thing_name = topic.split("/")[2]
   logger("RECEIVED", message.toString())
-  exports.thingShadow_on_delta_hub(thing_name, payload)
   exports.thingShadows_on_delta_thing(thing_name, payload)
   iotdata.updateThingShadow({ //@TODO well this is an awfully gross hack isn't it
     thingName: thing_name,

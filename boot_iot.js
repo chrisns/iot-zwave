@@ -115,7 +115,7 @@ const zwave_on_node_available = async (nodeid, nodeinfo) => {
     thingName: `zwave_${home_id}_${nodeid}`,
     thingTypeName: "zwave",
     attributePayload: {
-      attributes: _.mapValues(_.pickBy(nodeinfo, info => info.length >= 1 && info.length <= 800), v => v.replace(new RegExp("[ |\(|\)|=]", "g"), "_"))
+      attributes: _.mapValues(_.pickBy(nodeinfo, info => info.length >= 1 && info.length <= 800), v => v.replace(new RegExp("[ |\(|\)|=\&]", "g"), "_"))
     }
   }
   logger("node available", params)

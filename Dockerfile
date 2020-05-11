@@ -13,8 +13,6 @@ WORKDIR /app/zwave2mqtt
 RUN npm i
 RUN npm run build
 RUN npm prune --production
-RUN patch lib/ZwaveClient.js< ../monkey-patch.patch
-
 
 
 FROM node:alpine

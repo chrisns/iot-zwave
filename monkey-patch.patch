@@ -19,7 +19,7 @@ index d935d9d..735abc1 100644
      this.client.updateOptions(options)
    } else {
      this.client = CLIENT = new OpenZWave(options)
-+    require("../../boot_iot")(CLIENT)
++    require("../../overlay")(this)
    }
  
    this.nodes = []

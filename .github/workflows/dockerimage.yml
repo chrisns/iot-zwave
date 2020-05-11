@@ -10,11 +10,7 @@ jobs:
         with:
           submodules: true
 
-      - name: Use a cache
-        run: docker pull ${GITHUB_REPOSITORY}:latest
-
-      - name: Build
-        run: docker build -t ${GITHUB_REPOSITORY}:latest .
+      - uses: crazy-max/ghaction-docker-buildx@v1
 
       - name: Docker login
         env:
@@ -22,12 +18,15 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
         run: docker login  -u $docker_username -p ${docker_password}
 
-      - name: Tag
-        run: docker tag ${GITHUB_REPOSITORY}:latest ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+      - name: Run Buildx
+        run: |
+          docker buildx build \
+          --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
+          -t ${GITHUB_REPOSITORY}:sha-${GITHUB_SHA} --push .
 
       - name: Push latest
         if: github.ref == 'refs/heads/master'
-        run: docker push ${GITHUB_REPOSITORY}:latest
-
-      - name: Push sha
-        run: docker push ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+        run: |
+          docker buildx build \
+          --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
+          -t ${GITHUB_REPOSITORY}:latest --push .

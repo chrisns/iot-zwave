@@ -1,3 +1,0 @@
-[submodule "zwave2mqtt"]
-	path = zwave2mqtt
-	url = https://github.com/openzwave/zwave2mqtt

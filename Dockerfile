@@ -1,25 +1,9 @@
-FROM node:12-alpine as ozw-builder
-RUN apk --no-cache add eudev-dev coreutils linux-headers alpine-sdk python openssl
-
-COPY open-zwave /open-zwave
-WORKDIR /open-zwave/cpp/build
-RUN make
-RUN make install
+FROM robertslando/zwave2mqtt:dev as ozw-builder
 
 WORKDIR /app
 COPY . .
 RUN npm i --production
-WORKDIR /app/zwave2mqtt
-RUN npm i
-RUN npm run build
-RUN npm prune --production
 
-
-FROM node:alpine
-RUN apk add --no-cache eudev-dev busybox-extras
-COPY --from=ozw-builder /usr/local /usr/local
-COPY --from=ozw-builder /app /app
-WORKDIR /app/zwave2mqtt
 
 ENV AWS_ACCESS_KEY="" \
     AWS_SECRET_ACCESS_KEY="" \
@@ -29,5 +13,6 @@ ENV AWS_ACCESS_KEY="" \
     BUCKET_KEY="" \
     DEBUG=false \
     DEVICE=/dev/ttyUSB1
+WORKDIR /usr/src/app
 
 CMD npm start

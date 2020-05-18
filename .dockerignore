@@ -1,8 +1,7 @@
 node_modules
-zwave2mqtt/node_modules
+zwave2mqtt
 *.md
 LICENSE
 Dockerfile
 .gitignore
-.drone.yml
 .git

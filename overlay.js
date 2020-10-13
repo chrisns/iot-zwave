@@ -144,7 +144,7 @@ const unsubscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}
   subscriptions = subscriptions.filter(t => t !== topic)
   logger('unsubscribing to topic', topic)
   try {
-    await awsMqttClient.async_unsubscribe(topic, { qos: 1 })
+    await awsMqttClient.async_unsubscribe(topic)
   } catch (error) {
     logger(error)
   }

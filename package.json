@@ -13,7 +13,7 @@
   "repository": "https://github.com/chrisns/iot-zwave",
   "dependencies": {
     "aws-iot-device-sdk": "^2.2.6",
-    "aws-sdk": "^2.781.0",
+    "aws-sdk": "^2.783.0",
     "lodash.get": "^4.4.2",
     "lodash.mapvalues": "^4.6.0",
     "lodash.matches": "^4.6.0",

@@ -35,11 +35,6 @@ const persist_things = () =>
     Body: JSON.stringify((things))
   }).promise()
 
-const iotdata = new AWS.IotData({
-  endpoint: AWS_IOT_ENDPOINT_HOST,
-  debug: DEBUG
-})
-
 var awsMqttClient = awsIot.device({
   host: AWS_IOT_ENDPOINT_HOST,
   protocol: 'wss'
@@ -57,22 +52,8 @@ const value_update = (nodeid, comclass, value) =>
 const update_thing = async (thing_id, update) => {
   const payload = { state: { reported: update } }
   await queue.add(async () => {
-    try {
-      await iotdata.updateThingShadow({
-        thingName: `zwave_${home_id}_${thing_id}`,
-        payload: JSON.stringify(payload)
-      }).promise()
-    } catch (error) {
-      awsMqttClient.async_publish('thingManager/upsert', JSON.stringify({
-        thingName: `zwave_${home_id}_${thing_id}`,
-        thingTypeName: 'zwave'
-      }), { qos: 1 })
-      await iotdata.updateThingShadow({
-        thingName: `zwave_${home_id}_${thing_id}`,
-        payload: JSON.stringify(payload)
-      }).promise()
-      await subscribe_to_thing(`zwave_${home_id}_${thing_id}`)
-    }
+    await awsMqttClient.async_publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { reported: payload } }))
+    await subscribe_to_thing(`zwave_${home_id}_${thing_id}`)
   })
 }
 
@@ -169,10 +150,8 @@ awsMqttClient.on('message', (topic, message) => {
   const thing_name = topic.split('/')[2]
   logger('RECEIVED', message.toString())
   thingShadows_on_delta_thing(thing_name, payload)
-  iotdata.updateThingShadow({ // @TODO well this is an awfully gross hack isn't it
-    thingName: thing_name,
-    payload: JSON.stringify({ state: { desired: null } })
-  }).promise()
+  // @TODO well this is an awfully gross hack isn't it
+  awsMqttClient.async_publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { desired: null } }))
 })
 
 awsMqttClient.on('connect', () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))

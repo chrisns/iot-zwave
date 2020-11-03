@@ -22,9 +22,6 @@ const s3queue = new Queue(1, Infinity)
 let things = {}
 let home_id
 var zwave
-const iot = new AWS.Iot({
-  debug: DEBUG
-})
 
 const s3 = new AWS.S3({
   params: {
@@ -66,10 +63,10 @@ const update_thing = async (thing_id, update) => {
         payload: JSON.stringify(payload)
       }).promise()
     } catch (error) {
-      await iot.createThing({
+      awsMqttClient.async_publish('thingManager/upsert', JSON.stringify({
         thingName: `zwave_${home_id}_${thing_id}`,
         thingTypeName: 'zwave'
-      }).promise()
+      }), { qos: 1 })
       await iotdata.updateThingShadow({
         thingName: `zwave_${home_id}_${thing_id}`,
         payload: JSON.stringify(payload)
@@ -106,7 +103,7 @@ const silent_try = func => {
 
 const zwave_on_node_removed = async nodeid => {
   await unsubscribe_to_thing(`zwave_${home_id}_${nodeid}`)
-  return iot.deleteThing({ thingName: `zwave_${home_id}_${nodeid}` })
+  return awsMqttClient.async_publish('thingManager/delete', JSON.stringify({ thingName: `zwave_${home_id}_${nodeid}` }), { qos: 1 })
 }
 
 const zwave_on_node_available = async (nodeid, nodeinfo) => {
@@ -118,11 +115,7 @@ const zwave_on_node_available = async (nodeid, nodeinfo) => {
     }
   }
   logger('node available', params)
-  try {
-    await iot.updateThing(params).promise()
-  } catch (error) {
-    await iot.createThing(params).promise()
-  }
+  awsMqttClient.async_publish('thingManager/upsert', JSON.stringify(params), { qos: 1 })
   await subscribe_to_thing(params.thingName)
 }
 
@@ -155,12 +148,7 @@ const zwave_on_driver_ready = async homeid => {
   const params = {
     thingName: `zwave_${home_id}`
   }
-  try {
-    await iot.updateThing(params).promise()
-  } catch (error) {
-    logger(`couldn't update ${params.thingName} trying to create it`)
-    await iot.createThing(params).promise()
-  }
+  awsMqttClient.async_publish('thingManager/upsert', JSON.stringify(params), { qos: 1 })
 }
 
 s3.getObject().promise()

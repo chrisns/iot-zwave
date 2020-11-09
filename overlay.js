@@ -1,9 +1,9 @@
 const AWS = require('aws-sdk')
 const Queue = require('promise-queue')
-const util = require('util')
-const awsIot = require('aws-iot-device-sdk')
 const net = require('net')
 const logger = require(`${process.cwd()}/lib/debug`)('iot')
+const settings = require(`${process.cwd()}/store/settings.json`)
+const MQTT = require('async-mqtt')
 
 logger.color = 4
 
@@ -14,14 +14,15 @@ const _ = {
   get: require('lodash.get')
 }
 
-const { AWS_IOT_ENDPOINT_HOST, DEBUG, BUCKET, BUCKET_KEY } = process.env
+const { BUCKET, BUCKET_KEY } = process.env
 
 const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
 
 let things = {}
 let home_id
-var zwave
+let zwave
+let awsMqttClient
 
 const s3 = new AWS.S3({
   params: {
@@ -35,15 +36,6 @@ const persist_things = () =>
     Body: JSON.stringify((things))
   }).promise()
 
-var awsMqttClient = awsIot.device({
-  host: AWS_IOT_ENDPOINT_HOST,
-  protocol: 'wss'
-})
-
-awsMqttClient.async_publish = util.promisify(awsMqttClient.publish)
-awsMqttClient.async_subscribe = util.promisify(awsMqttClient.subscribe)
-awsMqttClient.async_unsubscribe = util.promisify(awsMqttClient.unsubscribe)
-
 const value_update = (nodeid, comclass, value) =>
   update_thing(
     value.node_id,
@@ -52,7 +44,7 @@ const value_update = (nodeid, comclass, value) =>
 const update_thing = async (thing_id, update) => {
   const payload = { state: { reported: update } }
   await queue.add(async () => {
-    await awsMqttClient.async_publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { reported: payload } }))
+    await awsMqttClient.publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { reported: payload } }))
     await subscribe_to_thing(`zwave_${home_id}_${thing_id}`)
   })
 }
@@ -84,7 +76,7 @@ const silent_try = func => {
 
 const zwave_on_node_removed = async nodeid => {
   await unsubscribe_to_thing(`zwave_${home_id}_${nodeid}`)
-  return awsMqttClient.async_publish('thingManager/delete', JSON.stringify({ thingName: `zwave_${home_id}_${nodeid}` }), { qos: 1 })
+  return awsMqttClient.publish('thingManager/delete', JSON.stringify({ thingName: `zwave_${home_id}_${nodeid}` }), { qos: 1 })
 }
 
 const zwave_on_node_available = async (nodeid, nodeinfo) => {
@@ -96,18 +88,18 @@ const zwave_on_node_available = async (nodeid, nodeinfo) => {
     }
   }
   logger('node available', params)
-  awsMqttClient.async_publish('thingManager/upsert', JSON.stringify(params), { qos: 1 })
+  awsMqttClient.publish('thingManager/upsert', JSON.stringify(params), { qos: 1 })
   await subscribe_to_thing(params.thingName)
 }
 
-var subscriptions = []
+let subscriptions = []
 
 const subscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}/shadow/update/accepted`) => {
   if (subscriptions.includes(topic)) return
   subscriptions.push(topic)
   logger('subscribing to topic', topic)
   try {
-    await awsMqttClient.async_subscribe(topic, { qos: 1 })
+    await awsMqttClient.subscribe(topic, { qos: 1 })
   } catch (error) {
     logger(error)
   }
@@ -118,18 +110,10 @@ const unsubscribe_to_thing = async (thingName, topic = `$aws/things/${thingName}
   subscriptions = subscriptions.filter(t => t !== topic)
   logger('unsubscribing to topic', topic)
   try {
-    await awsMqttClient.async_unsubscribe(topic)
+    await awsMqttClient.unsubscribe(topic)
   } catch (error) {
     logger(error)
   }
-}
-
-const zwave_on_driver_ready = async homeid => {
-  home_id = homeid.toString(16)
-  const params = {
-    thingName: `zwave_${home_id}`
-  }
-  awsMqttClient.async_publish('thingManager/upsert', JSON.stringify(params), { qos: 1 })
 }
 
 s3.getObject().promise()
@@ -144,26 +128,6 @@ s3.getObject().promise()
     logger('restored these things', things)
   })
 
-awsMqttClient.on('message', (topic, message) => {
-  const payload = JSON.parse(message.toString())
-  if (!payload.state || !payload.state.desired) return
-  const thing_name = topic.split('/')[2]
-  logger('RECEIVED', message.toString())
-  thingShadows_on_delta_thing(thing_name, payload)
-  // @TODO well this is an awfully gross hack isn't it
-  awsMqttClient.async_publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { desired: null } }))
-})
-
-awsMqttClient.on('connect', () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))
-awsMqttClient.on('connect', () => logger('aws connected'))
-
-// balance the last will by publishing the current ready status
-awsMqttClient.on('connect', () => awsMqttClient.async_publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: home_id !== undefined } } })))
-
-awsMqttClient.on('error', (error) => logger('aws', error))
-awsMqttClient.on('close', () => logger('aws connection close'))
-awsMqttClient.on('offline', () => logger('aws offline'))
-
 net.createServer(socket => {
   socket.write('Welcome to the z-wave cli!\n')
   socket.on('data', data => {
@@ -176,22 +140,51 @@ net.createServer(socket => {
   })
 }).listen(8888)
 
-module.exports = zw => {
-  zwave = zw.client
-  zwave.on('value added', zwave_on_value_added)
-
-  zwave.on('scan complete', () => awsMqttClient.async_publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: true } } })))
-
-  zwave.on('driver ready', zwave_on_driver_ready)
-
-  zwave.on('driver ready', () => awsIot.device({
-    host: AWS_IOT_ENDPOINT_HOST,
-    protocol: 'wss',
+const startup = async homeid => {
+  home_id = homeid.toString(16)
+  awsMqttClient = await MQTT.connect(settings.mqtt.host, {
+    clientId: `${settings.mqtt.name}_overlay`,
+    key: settings.mqtt._key,
+    cert: settings.mqtt._cert,
+    port: settings.mqtt.port,
+    ca: settings.mqtt._ca,
+    reconnectPeriod: settings.mqtt.reconnectPeriod,
     will: {
       topic: `aws/things/zwave_${home_id}/shadow/update`,
       payload: JSON.stringify({ state: { reported: { ready: false } } })
     }
-  })) // setup a last will to mark the device not ready when the whole process isn't running
+  })
+
+  awsMqttClient.publish('thingManager/upsert', JSON.stringify({ thingName: `zwave_${home_id}` }), { qos: 1 })
+
+  awsMqttClient.on('message', (topic, message) => {
+    const payload = JSON.parse(message.toString())
+    if (!payload.state || !payload.state.desired) return
+    const thing_name = topic.split('/')[2]
+    logger('RECEIVED', message.toString())
+    thingShadows_on_delta_thing(thing_name, payload)
+    // @TODO well this is an awfully gross hack isn't it
+    awsMqttClient.publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { desired: null } }))
+  })
+
+  awsMqttClient.on('connect', () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))
+  awsMqttClient.on('connect', () => logger('aws connected'))
+
+  // balance the last will by publishing the current ready status
+  awsMqttClient.on('connect', () => awsMqttClient.publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: true } } })))
+
+  awsMqttClient.on('error', (error) => logger('aws', error))
+  awsMqttClient.on('close', () => logger('aws connection close'))
+  awsMqttClient.on('offline', () => logger('aws offline'))
+}
+
+module.exports = zw => {
+  zwave = zw.client
+  zwave.on('value added', zwave_on_value_added)
+
+  zwave.on('scan complete', () => awsMqttClient.publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: true } } })))
+
+  zwave.on('driver ready', startup)
 
   zwave.on('node ready', zwave_on_node_available)
   zwave.on('node available', zwave_on_node_available)

@@ -3,7 +3,7 @@ const Queue = require('promise-queue')
 const util = require('util')
 const awsIot = require('aws-iot-device-sdk')
 const net = require('net')
-const logger = require('/usr/src/app/lib/debug')('iot')
+const logger = require(`${process.cwd()}/lib/debug`)('iot')
 
 logger.color = 4
 

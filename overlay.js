@@ -16,7 +16,6 @@ const _ = {
 
 const { BUCKET, BUCKET_KEY } = process.env
 
-const queue = new Queue(1, Infinity)
 const s3queue = new Queue(1, Infinity)
 
 let things = {}
@@ -43,10 +42,8 @@ const value_update = (nodeid, comclass, value) =>
 
 const update_thing = async (thing_id, update) => {
   const payload = { state: { reported: update } }
-  await queue.add(async () => {
-    await awsMqttClient.publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify({ state: { reported: payload } }))
-    await subscribe_to_thing(`zwave_${home_id}_${thing_id}`)
-  })
+  await awsMqttClient.publish(`$aws/things/zwave_${home_id}_${thing_id}/shadow/update`, JSON.stringify(payload))
+  await subscribe_to_thing(`zwave_${home_id}_${thing_id}`)
 }
 
 const setValue = async (thing_id, genre, label, value, again = false) =>

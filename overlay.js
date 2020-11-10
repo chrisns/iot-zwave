@@ -171,7 +171,7 @@ const startup = async homeid => {
   awsMqttClient.on('connect', () => logger('aws connected'))
 
   // balance the last will by publishing the current ready status
-  awsMqttClient.on('connect', () => awsMqttClient.publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: true } } })))
+  awsMqttClient.on('connect', () => awsMqttClient.publish(`$aws/things/zwave_${home_id}/shadow/update`, JSON.stringify({ state: { reported: { ready: home_id !== undefined } } })))
 
   awsMqttClient.on('error', (error) => logger('aws', error))
   awsMqttClient.on('close', () => logger('aws connection close'))

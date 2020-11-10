@@ -161,7 +161,7 @@ const startup = async homeid => {
     logger('RECEIVED', message.toString())
     thingShadows_on_delta_thing(thing_name, payload)
     // @TODO well this is an awfully gross hack isn't it
-    awsMqttClient.publish(`$aws/things/${thing_name}}/shadow/update`, JSON.stringify({ state: { desired: null } }))
+    awsMqttClient.publish(`$aws/things/${thing_name}/shadow/update`, JSON.stringify({ state: { desired: null } }))
   })
 
   awsMqttClient.on('connect', () => subscriptions.forEach(subscription => awsMqttClient.subscribe(subscription)))

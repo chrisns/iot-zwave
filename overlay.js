@@ -146,6 +146,7 @@ const startup = async homeid => {
     port: settings.mqtt.port,
     ca: settings.mqtt._ca,
     reconnectPeriod: settings.mqtt.reconnectPeriod,
+    resubscribe: false,
     will: {
       topic: `aws/things/zwave_${home_id}/shadow/update`,
       payload: JSON.stringify({ state: { reported: { ready: false } } })

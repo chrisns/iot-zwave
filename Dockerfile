@@ -1,4 +1,4 @@
-FROM robertslando/zwave2mqtt:dev@sha256:067bb9ee5b324b4af5e180d7d746bbb8c23c9796e99e5f265e0344a89f73c5e5
+FROM robertslando/zwave2mqtt:dev@sha256:b5a8677768fe134c2724beaa1b46f5734fb9925457dda9aceb0aa244f82e35d0
 
 WORKDIR /app
 COPY . .

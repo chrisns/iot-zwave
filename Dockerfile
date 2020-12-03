@@ -1,4 +1,5 @@
 FROM robertslando/zwave2mqtt:dev@sha256:86a8cfa184ed2e1f05af22e8b8ac4219de1aa1ab3ad36277aff34df72b0f3988
+LABEL org.opencontainers.image.source https://github.com/chrisns/iot-zwave
 
 WORKDIR /app
 COPY . .
